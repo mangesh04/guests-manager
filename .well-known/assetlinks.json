@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.guests_manager.twa",
+        "sha256_cert_fingerprints": ["D7:83:DC:92:28:6D:2C:C9:01:9F:F3:C4:76:54:81:A8:00:0F:AB:D9:24:9B:DA:B6:A7:44:4A:28:70:4B:9B:8D"]
+      }
+    }]

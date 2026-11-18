@@ -1,752 +1,237 @@
 <!DOCTYPE html>
-<html lang="en">
-
+< lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Yolo Nest PG Manager</title>
-  <style>
-    :root {
-      font-family: Arial, sans-serif;
-      color: #172033;
-      background: #f4f6fa
-    }
-
-    * {
-      box-sizing: border-box
-    }
-
-    body {
-      margin: 0
-    }
-
-    .wrap {
-      max-width: 1200px;
-      margin: auto;
-      padding: 18px
-    }
-
-    .head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px
-    }
-
-    .brand {
-      font-size: 22px;
-      font-weight: 800
-    }
-
-    .muted {
-      color: #687386;
-      font-size: 12px
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin: 14px 0
-    }
-
-    .stat,
-    .panel,
-    .guest {
-      background: white;
-      border: 1px solid #e1e6ef;
-      border-radius: 13px;
-      padding: 14px
-    }
-
-    .stat small {
-      display: block;
-      color: #697386
-    }
-
-    .stat b {
-      font-size: 24px;
-      display: block;
-      margin-top: 6px
-    }
-
-    .actions,
-    .filters {
-      display: flex;
-      gap: 9px;
-      flex-wrap: wrap;
-      margin: 12px 0
-    }
-
-    .btn {
-      border: 1px solid #d7deea;
-      background: white;
-      padding: 11px 14px;
-      border-radius: 9px;
-      font-weight: 700;
-      cursor: pointer
-    }
-
-    .primary {
-      background: #2457d6;
-      color: white;
-      border-color: #2457d6
-    }
-
-    .danger {
-      color: #c0392b
-    }
-
-    .panel {
-      margin: 12px 0
-    }
-
-    .field {
-      padding: 10px;
-      border: 1px solid #d7deea;
-      border-radius: 8px;
-      background: white;
-      width: 100%;
-      min-width: 0
-    }
-
-    label {
-      font-size: 12px;
-      font-weight: 700;
-      color: #596579;
-      display: block;
-      margin: 0 0 5px
-    }
-
-    .filters>div {
-      flex: 1;
-      min-width: 145px
-    }
-
-    .gridform {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px
-    }
-
-    .hidden {
-      display: none !important
-    }
-
-    .guestlist {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px
-    }
-
-    .guest h3 {
-      margin: 3px 0 5px;
-      font-size: 16px
-    }
-
-    .guest .meta {
-      font-size: 12px;
-      color: #687386;
-      margin-bottom: 12px
-    }
-
-    .guestfields {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 9px
-    }
-
-    .guestfields>div {
-      min-width: 0
-    }
-
-    .guestfields input,
-    .guestfields select {
-      display: block;
-      width: 100%;
-      min-height: 42px;
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      background: #fff;
-      color: #172033;
-      font-size: 14px;
-      line-height: 1.3
-    }
-
-    .guestfields>div:first-child select.flatEdit {
-      width: 100%;
-      min-width: 0
-    }
-
-    .quickAdd {
-      font-size: 11px;
-      white-space: nowrap
-    }
-
-    .guestfields select.flatEdit {
-      width: 100% !important;
-      min-width: 110px !important;
-      max-width: 100%;
-      padding-right: 26px;
-      white-space: nowrap
-    }
-
-    .tablewrap td:nth-child(2) {
-      min-width: 125px
-    }
-
-    .tablewrap td select.flatEdit {
-      width: 110px !important;
-      min-width: 110px !important
-    }
-
-    .guestfields .full {
-      grid-column: 1/-1
-    }
-
-    .badge {
-      font-size: 11px;
-      padding: 5px 8px;
-      border-radius: 20px;
-      background: #eef2f8;
-      display: inline-block
-    }
-
-    .badge.Paid {
-      background: #dcf5e8;
-      color: #147348
-    }
-
-    .badge.Pending {
-      background: #fff0d8;
-      color: #9a5a00
-    }
-
-    .tablewrap {
-      overflow: auto
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 950px;
-      font-size: 13px
-    }
-
-    th,
-    td {
-      text-align: left;
-      padding: 9px;
-      border-bottom: 1px solid #e8ecf2
-    }
-
-    th {
-      color: #657084
-    }
-
-    td input,
-    td select {
-      width: 100%;
-      padding: 7px;
-      border: 1px solid #d7deea;
-      border-radius: 6px
-    }
-
-    .roomrow {
-      margin: 12px 0
-    }
-
-    .roomchips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px
-    }
-
-    .room {
-      font-size: 12px;
-      border: 1px solid #dce3ec;
-      border-radius: 7px;
-      padding: 7px
-    }
-
-    .room.fullroom {
-      border-color: #26986b;
-      background: #e8f7ef
-    }
-
-    .notice {
-      font-size: 13px;
-      color: #147348;
-      min-height: 20px;
-      margin: 8px 0
-    }
-
-    @media(max-width:700px) {
-      .wrap {
-        padding: 12px
-      }
-
-      .stats {
-        grid-template-columns: 1fr 1fr
-      }
-
-      .guestlist {
-        grid-template-columns: 1fr
-      }
-
-      .head {
-        align-items: flex-start
-      }
-
-      .brand {
-        font-size: 19px
-      }
-
-      .actions .btn {
-        flex: 1
-      }
-
-      .gridform {
-        grid-template-columns: 1fr 1fr
-      }
-
-      .panel {
-        padding: 12px
-      }
-    }
-
-    .ov {
-      position: fixed;
-      inset: 0;
-      background: rgba(15, 23, 42, .55);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      z-index: 50
-    }
-
-    .modal {
-      background: #fff;
-      border-radius: 14px;
-      max-width: 640px;
-      width: 100%;
-      max-height: 85vh;
-      overflow: auto;
-      padding: 16px
-    }
-
-    .chg {
-      padding: 9px 10px;
-      border: 1px solid #e1e6ef;
-      border-radius: 9px;
-      margin: 7px 0;
-      font-size: 13px
-    }
-
-    .chg.bad {
-      background: #fdecea;
-      border-color: #f3b8b2;
-      color: #8f2a20
-    }
-
-    .chg.good {
-      background: #f1faf5
-    }
-
-    .tag {
-      font-size: 11px;
-      font-weight: 800;
-      padding: 2px 7px;
-      border-radius: 12px;
-      margin-right: 6px;
-      background: #eef2f8
-    }
-
-    .hrow {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      align-items: flex-start;
-      padding: 9px 0;
-      border-bottom: 1px solid #e8ecf2;
-      font-size: 13px
-    }
-
-    textarea.field {
-      min-height: 170px;
-      font-family: monospace;
-      font-size: 12px
-    }
-
-    #histList {
-      max-height: 420px;
-      overflow: auto
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-</head>
-
-<body>
-  <main class="wrap">
-    <header class="head">
-      <div>
-        <div class="brand">YOLO NEST</div>
-        <div class="muted">Co-Living · PG Manager</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center"><span class="badge" id="syncBadge">Offline</span><button
-          class="btn hidden" id="logoutBtn" type="button">Logout</button></div>
-    </header>
-    <section class="panel" id="loginPanel" style="max-width:380px;margin:40px auto"><b>Staff login</b>
-      <p class="muted">Sign in to view and edit the tenant register.</p><label>Email</label><input id="loginEmail"
-        class="field" type="email" autocomplete="username"><label style="margin-top:10px">Password</label><input
-        id="loginPass" class="field" type="password" autocomplete="current-password"><button class="btn primary"
-        id="loginBtn" style="width:100%;margin-top:13px" type="button">Login</button>
-      <div class="notice" id="loginMsg" style="color:#c0392b"></div>
-    </section>
-    <div id="appRoot" class="hidden">
-      <section class="stats">
-        <div class="stat"><small>Total guests</small><b id="total">63</b></div>
-        <div class="stat"><small>Occupied rooms</small><b id="occupied">—</b></div>
-        <div class="stat"><small>PG guests</small><b id="pgcount">—</b></div>
-        <div class="stat"><small>Empty rooms</small><b id="empty">—</b></div>
-      </section>
-      <div class="actions"><button class="btn primary" id="addBtn">＋ Add Guest</button><button class="btn"
-          id="editBtn">✎ Edit Mode: OFF</button><button class="btn" id="exportBtn">↓ Export Excel</button><button
-          class="btn" id="histBtn">🕘 History</button><button class="btn" id="backupBtn">↓ Backup (JSON)</button><button
-          class="btn" id="guideBtn">🔗 AI Link Guide</button><button class="btn" id="resetBtn">Reset Filters</button>
-      </div>
-      <section class="panel hidden" id="histPanel">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>Change History (latest
-            100)</b><button class="btn" id="closeHist">✕</button></div>
-        <div id="histList"></div>
-      </section>
-      <section class="panel hidden" id="guidePanel">
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>AI Link Guide</b><button
-            class="btn" id="closeGuide">✕</button></div>
-        <p class="muted">Paste these instructions into any AI once. Then ask e.g. "mark Rahul in 101 as paid" and it
-          replies with a link. Clicking it opens this app, shows the changes, and applies them when you press Apply.</p>
-        <textarea id="guideText" class="field" readonly></textarea>
-        <div class="actions"><button class="btn primary" id="copyGuide">Copy AI instructions</button><button class="btn"
-            id="copyList">Copy guest list (no phone numbers)</button></div>
-      </section>
-      <div class="ov hidden" id="ov">
-        <div class="modal" id="modalBody"></div>
-      </div>
-      <section class="panel hidden" id="addPanel">
-        <div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Add New Guest</b><button
-            class="btn" id="closeAdd">✕</button></div>
-        <div class="gridform">
-          <div><label>Flat No.</label><select id="newFlat" class="field"></select></div>
-          <div><label>Accommodation Type</label><select id="newType" class="field">
-              <option>PG (Bed Wise)</option>
-              <option>Rented Flat</option>
-              <option>Empty</option>
-            </select></div>
-          <div class="full"><label>Guest Name</label><input id="newName" class="field" placeholder="Full name"></div>
-          <div class="full"><label>Contact Number</label><input id="newContact" class="field" inputmode="numeric"
-              maxlength="10" placeholder="10-digit mobile"></div>
-          <div><label>Rent (₹)</label><input id="newRent" class="field" type="number"></div>
-          <div><label>Deposit (₹)</label><input id="newDeposit" class="field" type="number"></div>
-          <div class="full"><label>Payment Status</label><select id="newPayment" class="field">
-              <option>Not Updated</option>
-              <option>Paid</option>
-              <option>Pending</option>
-              <option>Partially Paid</option>
-              <option>Not Applicable</option>
-            </select></div>
-        </div><button id="saveGuest" class="btn primary" style="width:100%;margin-top:13px">Save Guest</button>
-      </section>
-      <section class="panel"><b>Guest Directory</b>
-        <div class="filters">
-          <div><input id="search" class="field" placeholder="Search name, contact or room"></div>
-          <div><select id="roomFilter" class="field">
-              <option value="">All rooms</option>
-            </select></div>
-          <div><select id="paymentFilter" class="field">
-              <option value="">All payment statuses</option>
-              <option>Paid</option>
-              <option>Pending</option>
-              <option>Partially Paid</option>
-              <option>Not Updated</option>
-              <option>Not Applicable</option>
-            </select></div>
-        </div>
-        <div class="muted" id="resultCount">63 records</div>
-        <div class="notice" id="notice"></div>
-      </section>
-      <div style="margin:10px 0"><button class="btn" id="toggleMobileList" type="button">Show Individual Guest
-          List</button></div>
-      <div id="mobileListWrap" class="hidden">
-        <div id="mobileList" class="guestlist"></div>
-      </div>
-      <section class="panel tablewrap" id="desktopList">
-        <table>
-          <thead>
-            <tr>
-              <th>Sr.</th>
-              <th>Flat</th>
-              <th>Accommodation</th>
-              <th>Tenant</th>
-              <th>Contact</th>
-              <th>Rent ₹</th>
-              <th>Deposit ₹</th>
-              <th>Payment</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </section>
-      <section class="panel"><b>Room Overview</b>
-        <p class="muted">All 30 rooms · 6 rooms per floor</p>
-        <div id="roomOverview"></div>
-      </section>
-      <p class="muted" style="text-align:center">Data is saved to Supabase. Export regularly for backup.</p>
-    </div>
-  </main>
-  <script>
-    // ====== 1. PUT YOUR SUPABASE DETAILS HERE (Project Settings > API) ======
-    const SUPABASE_URL = 'https://aaobmdfcuargiacdstqk.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_3FwMmgHvVZPnh40z8lhCrw_-NMxYJBo';
-    // ========================================================================
-    const _m = $m => { const e = document.getElementById('loginMsg'); if (e) e.textContent = $m };
-    if (typeof supabase === 'undefined') { _m('Supabase library did not load. Check your internet connection or ad-blocker, then reload.'); throw new Error('supabase-js missing') }
-    if (SUPABASE_URL.includes('YOUR-PROJECT') || SUPABASE_ANON_KEY.includes('YOUR-ANON')) { _m('Setup needed: open this HTML file in a text editor and paste your Supabase Project URL and anon/publishable key at the top.'); throw new Error('Supabase keys not set') }
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const seed = [];
-    const rooms = Array.from({ length: 5 }, (_, f) => Array.from({ length: 6 }, (_, r) => String((f + 1) * 100 + r + 1))).flat();
-    const COLS = 'id,sort_order,flat,type,name,contact,rent,deposit,payment';
-    let data = [], edit = false, addAfterId = null;
-    const types = ['PG (Bed Wise)', 'Rented Flat', 'Empty'], payments = ['Paid', 'Pending', 'Partially Paid', 'Not Updated', 'Not Applicable'];
-    const $ = id => document.getElementById(id), esc = s => String(s ?? '').replace(/[&<>\"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-    const toRow = g => ({ flat: g.flat, type: g.type, name: g.name || '', contact: g.contact || '', rent: String(g.rent ?? ''), deposit: String(g.deposit ?? ''), payment: g.payment || 'Not Updated' });
-    function setSync(t, bad) { const b = $('syncBadge'); b.textContent = t; b.style.background = bad ? '#fde2e0' : '#dcf5e8'; b.style.color = bad ? '#c0392b' : '#147348' }
-    function note(t, bad) { const n = $('notice'); n.textContent = t; n.style.color = bad ? '#c0392b' : '#147348' }
-
-    // ---------- Supabase data layer ----------
-    async function loadData() {
-      setSync('Loading…');
-      const { data: rows, error } = await sb.from('guests').select(COLS).order('sort_order').order('id');
-      if (error) throw error;
-      data = rows;
-      if (!data.length) { const { count, error: he } = await sb.from('guest_history').select('id', { count: 'exact', head: true }); if (he) throw he; if (!count) await importInitial() }
-      setSync('Synced');
-    }
-    async function importInitial() {
-      // first run: import this browser's old data if present, else the built-in list
-      let old = null; try { old = JSON.parse(localStorage.getItem('yolonest_manager_v1') || 'null') } catch (e) { }
-      let list;
-      if (Array.isArray(old) && old.length) list = old;
-      else {
-        let counts = {}; seed.forEach(x => { if (x[1] && x[2]) counts[x[0]] = (counts[x[0]] || 0) + 1 });
-        list = seed.map(x => ({ flat: x[0], type: !x[1] || !x[2] ? 'Empty' : counts[x[0]] > 1 ? 'PG (Bed Wise)' : 'Rented Flat', name: x[1], contact: x[2], rent: x[3], deposit: x[4], payment: 'Not Updated' }))
-      }
-      if (!list.length) return; const payload = list.map((g, i) => ({ ...toRow(g), sort_order: i + 1 }));
-      const { data: rows, error } = await sb.from('guests').insert(payload).select(COLS);
-      if (error) throw error;
-      data = rows.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
-      note('First run: ' + rows.length + ' records imported into Supabase.');
-    }
-    async function run(p, okMsg) {
-      setSync('Saving…');
-      const { error } = await p;
-      if (error) { setSync('Error', true); note('Save failed: ' + error.message + ' — reload to resync.', true); return false }
-      setSync('Synced'); if (okMsg) note(okMsg); return true;
-    }
-
-    // ---------- UI ----------
-    function save() { } // kept for compatibility; saving is now done per action
-    function opts(a, v) { return a.map(x => `<option ${x === v ? 'selected' : ''}>${esc(x)}</option>`).join('') }
-    $('newFlat').innerHTML = opts(rooms, '101'); $('roomFilter').innerHTML = '<option value="">All rooms</option>' + opts(rooms, '');
-    function filtered() { let q = $('search').value.toLowerCase().trim(), r = $('roomFilter').value, p = $('paymentFilter').value; return data.map((x, i) => ({ ...x, sr: i + 1 })).filter(x => (!q || [x.name, x.contact, x.flat].join(' ').toLowerCase().includes(q)) && (!r || x.flat === r) && (!p || (x.payment || 'Not Updated') === p)) }
-    function select(cls, a, v) { return `<select class="${cls}">${opts(a, v)}</select>` } function inp(cls, v, type = 'text') { return `<input class="${cls}" type="${type}" value="${esc(v)}">` } function pill(v) { return `<span class="badge ${esc(v)}">${esc(v || 'Not Updated')}</span>` }
-    function card(x) {
-      return `<article class="guest" data-id="${x.id}"><div style="display:flex;justify-content:space-between;gap:8px"><div><div class="muted">#${x.sr} · Flat ${esc(x.flat)} ${edit ? `<button class="btn quickAdd" type="button" style="padding:3px 8px;margin-left:5px">＋ Add</button>` : ''}</div><h3>${esc(x.name || 'Empty / unnamed entry')}</h3><div class="meta">${esc(x.contact || 'No contact number')}</div></div>${pill(x.payment || 'Not Updated')}</div><div class="guestfields">
-<div class="full"><label>Flat No.</label>${edit ? select('flatEdit', rooms, x.flat) : esc(x.flat)}</div><div><label>Accommodation</label>${edit ? select('typeEdit', types, x.type) : esc(x.type)}</div>
-<div><label>Rent ₹</label>${edit ? inp('rentEdit', x.rent, 'number') : esc(x.rent || '—')}</div><div><label>Deposit ₹</label>${edit ? inp('depositEdit', x.deposit) : esc(x.deposit || '—')}</div>
-<div class="full"><label>Guest Name</label>${edit ? inp('nameEdit', x.name) : esc(x.name || '—')}</div><div class="full"><label>Contact</label>${edit ? inp('contactEdit', x.contact, 'tel') : esc(x.contact || '—')}</div><div class="full"><label>Payment Status</label>${edit ? select('payEdit', payments, x.payment || 'Not Updated') : pill(x.payment || 'Not Updated')}</div></div>${edit ? '<div class="actions"><button class="btn primary saveRow">Save</button><button class="btn danger deleteRow">Delete</button></div>' : ''}</article>`
-    }
-    function row(x) { return `<tr data-id="${x.id}"><td>${x.sr} ${edit ? '<button class="btn quickAdd" type="button" style="padding:3px 7px;margin-left:4px">＋</button>' : ''}</td><td>${edit ? select('flatEdit', rooms, x.flat) : esc(x.flat)}</td><td>${edit ? select('typeEdit', types, x.type) : esc(x.type)}</td><td>${edit ? inp('nameEdit', x.name) : esc(x.name || '—')}</td><td>${edit ? inp('contactEdit', x.contact) : esc(x.contact || '—')}</td><td>${edit ? inp('rentEdit', x.rent, 'number') : esc(x.rent || '—')}</td><td>${edit ? inp('depositEdit', x.deposit) : esc(x.deposit || '—')}</td><td>${edit ? select('payEdit', payments, x.payment || 'Not Updated') : pill(x.payment || 'Not Updated')}</td><td>${edit ? '<button class="btn primary saveRow">Save</button> <button class="btn danger deleteRow">Delete</button>' : '—'}</td></tr>` }
-    function render() { let list = filtered(), occupied = new Set(data.filter(x => x.name && x.contact).map(x => x.flat)); $('total').textContent = data.filter(x => x.name && x.contact).length; $('occupied').textContent = occupied.size + '/30'; $('pgcount').textContent = data.filter(x => x.type === 'PG (Bed Wise)' && x.name).length; $('empty').textContent = rooms.filter(r => !occupied.has(r)).length; $('resultCount').textContent = `Showing ${list.length} of ${data.length} records`; $('editBtn').textContent = edit ? '✓ Edit Mode: ON' : '✎ Edit Mode: OFF'; $('mobileList').innerHTML = list.length ? list.map(card).join('') : '<div class="panel">No matching guests.</div>'; $('tableBody').innerHTML = list.map(row).join(''); $('roomOverview').innerHTML = Array.from({ length: 5 }, (_, f) => `<div class="roomrow"><b>${f + 1}${['st', 'nd', 'rd', 'th', 'th'][f]} Floor</b><div class="roomchips">${rooms.slice(f * 6, f * 6 + 6).map(r => { let n = data.filter(x => x.flat === r && x.name && x.contact).length; return `<span class="room ${n ? 'fullroom' : ''}">${r} · ${n ? n + ' guest(s)' : 'Empty'}</span>` }).join('')}</div></div>`).join('') }
-    function get(row) { return data.find(x => x.id === Number(row.dataset.id)) }
-    // recompute room types; returns guests whose type changed
-    function refreshRoomTypes() { const changed = []; for (const room of rooms) { const occ = data.filter(g => g.flat === room && g.name && g.contact); for (const g of data.filter(g => g.flat === room)) { const t = occ.length === 0 ? 'Empty' : occ.length > 1 ? 'PG (Bed Wise)' : 'Rented Flat'; if (g.type !== t) { g.type = t; changed.push(g) } } } return changed }
-    async function apply(row) {
-      let x = get(row); if (!x) return; let oldFlat = x.flat; let v = c => row.querySelector('.' + c)?.value;
-      x.flat = v('flatEdit') ?? x.flat; x.type = v('typeEdit') ?? x.type; x.name = v('nameEdit') ?? x.name; x.contact = v('contactEdit') ?? x.contact; x.rent = v('rentEdit') ?? x.rent; x.deposit = v('depositEdit') ?? x.deposit; x.payment = v('payEdit') ?? x.payment;
-      const changed = refreshRoomTypes(); const set = new Map([[x.id, x]]); changed.forEach(g => set.set(g.id, g));
-      render();
-      await run(sb.from('guests').upsert([...set.values()].map(g => ({ id: g.id, sort_order: g.sort_order, ...toRow(g) }))), 'Guest updated. Room status updated automatically.')
-    }
-    async function removeGuest(row) {
-      let x = get(row); if (!x) return; if (!confirm('Delete ' + (x.name || 'this entry') + ' (Flat ' + x.flat + ')?')) return;
-      data = data.filter(g => g.id !== x.id); const changed = refreshRoomTypes(); render();
-      const ok = await run(sb.from('guests').delete().eq('id', x.id));
-      if (ok && changed.length) await run(sb.from('guests').upsert(changed.map(g => ({ id: g.id, sort_order: g.sort_order, ...toRow(g) }))));
-      if (ok) note('Guest deleted.')
-    }
-    document.addEventListener('click', e => {
-      const q = e.target.closest('.quickAdd');
-      if (q) { const row = q.closest('[data-id]'); const x = data.find(g => g.id === Number(row.dataset.id)); if (!x) return; addAfterId = x.id; $('newFlat').value = x.flat; $('newType').value = 'PG (Bed Wise)'; $('addPanel').classList.remove('hidden'); $('newName').focus(); return }
-      const s = e.target.closest('.saveRow'); if (s) { apply(s.closest('[data-id]')); return }
-      const d = e.target.closest('.deleteRow'); if (d) { removeGuest(d.closest('[data-id]')) }
-    });
-    $('toggleMobileList').onclick = () => { const box = $('mobileListWrap'); const opening = box.classList.contains('hidden'); box.classList.toggle('hidden'); $('toggleMobileList').textContent = opening ? 'Hide Individual Guest List' : 'Show Individual Guest List'; if (opening) box.scrollIntoView({ behavior: 'smooth', block: 'start' }) };
-    $('addBtn').onclick = () => $('addPanel').classList.remove('hidden'); $('closeAdd').onclick = () => $('addPanel').classList.add('hidden'); $('editBtn').onclick = () => { edit = !edit; render() };
-    ['search', 'roomFilter', 'paymentFilter'].forEach(id => $(id).addEventListener(id === 'search' ? 'input' : 'change', render));
-    $('resetBtn').onclick = () => { $('search').value = ''; $('roomFilter').value = ''; $('paymentFilter').value = ''; render() };
-    $('saveGuest').onclick = async () => {
-      let name = $('newName').value.trim(), contact = $('newContact').value.trim();
-      if (!name) return alert('Enter guest name');
-      if (contact && !/^\d{10}$/.test(contact)) return alert('Enter a valid 10-digit contact');
-      if (!$('newType').value || $('newType').value === 'Empty') return alert('Choose PG or Rented Flat');
-      let flat = $('newFlat').value;
-      let idx = addAfterId === null ? -1 : data.findIndex(g => g.id === addAfterId);
-      let order; if (idx >= 0) { const a = data[idx].sort_order, b = data[idx + 1] ? data[idx + 1].sort_order : a + 2; order = (a + b) / 2 } else order = (data.length ? data[data.length - 1].sort_order : 0) + 1;
-      const guest = { flat, type: 'Rented Flat', name, contact, rent: $('newRent').value, deposit: $('newDeposit').value, payment: $('newPayment').value, sort_order: order };
-      $('saveGuest').disabled = true; setSync('Saving…');
-      const { data: rows, error } = await sb.from('guests').insert({ ...toRow(guest), sort_order: order }).select(COLS);
-      $('saveGuest').disabled = false;
-      if (error) { setSync('Error', true); return note('Could not add guest: ' + error.message, true) }
-      data.push(rows[0]); data.sort((a, b) => a.sort_order - b.sort_order || a.id - b.id);
-      addAfterId = null; const changed = refreshRoomTypes();
-      ['newName', 'newContact', 'newRent', 'newDeposit'].forEach(id => $(id).value = ''); $('addPanel').classList.add('hidden'); render();
-      if (changed.length) await run(sb.from('guests').upsert(changed.map(g => ({ id: g.id, sort_order: g.sort_order, ...toRow(g) }))));
-      setSync('Synced'); note('Guest added. Serial numbers and room status updated.')
-    };
-    // Export: Excel-compatible CSV (opens directly in Excel)
-    $('exportBtn').onclick = () => {
-      const h = ['Sr', 'Flat', 'Accommodation', 'Tenant', 'Contact', 'Rent', 'Deposit', 'Payment'];
-      const q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
-      const lines = [h.map(q).join(',')].concat(data.map((x, i) => [i + 1, x.flat, x.type, x.name, x.contact ? '\t' + x.contact : '', x.rent, x.deposit, x.payment].map(q).join(',')));
-      const blob = new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'yolo-nest-guests-' + new Date().toISOString().slice(0, 10) + '.csv'; a.click(); URL.revokeObjectURL(a.href)
-    };
-
-    // ---------- Change links (?changes=...) ----------
-    const norm = s => String(s ?? '').toLowerCase().replace(/\s+/g, ' ').trim();
-    const LINK_FIELDS = ['flat', 'name', 'contact', 'rent', 'deposit', 'payment'];
-    let pending = null, plan = null, histRows = [];
-    (function readLink() {
-      const c = new URLSearchParams(location.search).get('changes'); if (c === null) return;
-      try { pending = JSON.parse(c); if (!Array.isArray(pending)) pending = [pending] } catch (e) { pending = [{ op: 'invalid' }] }
-      history.replaceState(null, '', location.pathname)
-    })();
-    function cleanFields(s) {
-      const f = {}; for (const k of LINK_FIELDS) {
-        if (s && s[k] !== undefined && s[k] !== null) {
-          const v = String(s[k]).trim();
-          if (k === 'flat' && !rooms.includes(v)) throw 'Invalid flat "' + v + '"';
-          if (k === 'payment' && !payments.includes(v)) throw 'Invalid payment status "' + v + '"';
-          if (k === 'contact' && v && !/^\d{10}$/.test(v)) throw 'Contact must be 10 digits';
-          f[k] = v
-        }
-      } return f
-    }
-    function findIn(list, m) {
-      if (!m || typeof m !== 'object' || !Object.keys(m).length) return { err: 'No match details given' };
-      let r = list.filter(g => !g._del && (m.id === undefined || g.id === Number(m.id)) && (m.flat === undefined || String(g.flat) === String(m.flat)) && (m.contact === undefined || String(g.contact) === String(m.contact)));
-      if (m.name !== undefined) { const n = norm(m.name); const ex = r.filter(g => norm(g.name) === n); r = ex.length ? ex : r.filter(g => n && norm(g.name).includes(n)) }
-      if (!r.length) return { err: 'No guest found for ' + JSON.stringify(m) };
-      if (r.length > 1) return { err: r.length + ' guests match ' + JSON.stringify(m) + ' - add flat or contact' };
-      return { g: r[0] }
-    }
-    function fixTypes(list) {
-      for (const room of rooms) {
-        const inRoom = list.filter(g => !g._del && g.flat === room); const occ = inRoom.filter(g => g.name && g.contact).length;
-        for (const g of inRoom) { const t = occ === 0 ? 'Empty' : occ > 1 ? 'PG (Bed Wise)' : 'Rented Flat'; if (g.type !== t) { g.type = t; if (!g._new) g._dirty = true } }
-      }
-    }
-    function buildPlan(list) {
-      const work = data.map(g => ({ ...g })); let tmp = -1; const items = [];
-      list.slice(0, 50).forEach(c => {
-        const it = { ok: false, tag: String(c && c.op || '?').toUpperCase(), text: '', err: '' }; items.push(it);
-        try {
-          if (!c || typeof c !== 'object') throw 'Bad item';
-          if (c.op === 'add') {
-            const f = cleanFields(c.set || c); if (!f.name) throw 'Name is required'; if (!f.flat) throw 'Flat is required';
-            let pos = work.length; if (c.after) { const r = findIn(work, c.after); if (r.err) throw 'after: ' + r.err; pos = work.indexOf(r.g) + 1 }
-            work.splice(pos, 0, { id: tmp--, _new: true, flat: f.flat, type: 'Rented Flat', name: f.name, contact: f.contact || '', rent: f.rent || '', deposit: f.deposit || '', payment: f.payment || 'Not Updated' });
-            it.text = 'Add ' + f.name + ' to flat ' + f.flat + [f.contact && 'contact ' + f.contact, f.rent && 'rent ' + f.rent, f.deposit && 'deposit ' + f.deposit, f.payment && 'payment ' + f.payment].filter(Boolean).map(x => ' · ' + x).join('');
-          } else if (c.op === 'update') {
-            const r = findIn(work, c.match); if (r.err) throw r.err; const f = cleanFields(c.set);
-            const ch = Object.keys(f).filter(k => String(r.g[k] ?? '') !== f[k]);
-            it.text = 'Flat ' + r.g.flat + ' · ' + (r.g.name || 'unnamed');
-            if (!Object.keys(f).length) throw 'Nothing to change'; if (!ch.length) throw 'Already set - no change';
-            it.text += ': ' + ch.map(k => k + ' ' + (r.g[k] || '-') + ' → ' + (f[k] || '-')).join(', ');
-            Object.assign(r.g, f); if (!r.g._new) r.g._dirty = true;
-          } else if (c.op === 'delete') {
-            const r = findIn(work, c.match); if (r.err) throw r.err; r.g._del = true; it.text = 'Delete ' + (r.g.name || 'unnamed') + ' (flat ' + r.g.flat + ')';
-          } else throw 'Unknown op "' + c.op + '"';
-          it.ok = true;
-        } catch (e) { it.err = String(e && e.message || e); if (!it.text) it.text = JSON.stringify(c).slice(0, 110) }
-      });
-      return { work, items }
-    }
-    function openModal(h) { $('modalBody').innerHTML = h; $('ov').classList.remove('hidden') }
-    function closeModal() { $('ov').classList.add('hidden') }
-    function openPlan() {
-      plan = buildPlan(pending); pending = null; const good = plan.items.filter(i => i.ok).length;
-      openModal('<b style="font-size:16px">Review changes from link</b><p class="muted">Nothing is saved until you press Apply.</p>' +
-        plan.items.map(i => `<div class="chg ${i.ok ? 'good' : 'bad'}"><span class="tag">${esc(i.tag)}</span>${esc(i.text)}${i.ok ? '' : ' <b>— ' + esc(i.err) + ' (skipped)</b>'}</div>`).join('') +
-        `<div class="actions"><button class="btn primary" id="applyPlan" ${good ? '' : 'disabled'}>Apply ${good} change${good === 1 ? '' : 's'}</button><button class="btn" id="cancelPlan">Cancel</button></div>`);
-      $('cancelPlan').onclick = () => { plan = null; closeModal() }; $('applyPlan').onclick = applyPlan
-    }
-    async function applyPlan() {
-      const p = plan; if (!p) return; plan = null; closeModal(); const work = p.work, good = p.items.filter(i => i.ok).length;
-      fixTypes(work); const live = work.filter(g => !g._del);
-      for (let i = 0; i < live.length;) {
-        if (!live[i]._new) { i++; continue } let j = i; while (j < live.length && live[j]._new) j++;
-        const a = i > 0 ? live[i - 1].sort_order : 0, k = j - i, b = j < live.length ? live[j].sort_order : a + k + 1;
-        for (let t = 0; t < k; t++)live[i + t].sort_order = a + (b - a) * (t + 1) / (k + 1); i = j
-      }
-      const dels = work.filter(g => g._del && !g._new).map(g => g.id);
-      const upd = work.filter(g => g._dirty && !g._del && !g._new).map(g => ({ id: g.id, sort_order: g.sort_order, ...toRow(g) }));
-      const adds = live.filter(g => g._new).map(g => ({ sort_order: g.sort_order, ...toRow(g) }));
-      setSync('Saving…'); let err = null;
-      if (dels.length) { const r = await sb.from('guests').delete().in('id', dels); err = err || r.error }
-      if (!err && upd.length) { const r = await sb.from('guests').upsert(upd); err = err || r.error }
-      if (!err && adds.length) { const r = await sb.from('guests').insert(adds); err = err || r.error }
-      try { await loadData() } catch (e) { err = err || e } render();
-      if (err) { setSync('Error', true); note('Some changes failed: ' + err.message, true) } else note(good + ' change' + (good === 1 ? '' : 's') + ' applied from link.')
-    }
-
-    // ---------- History / restore ----------
-    const HF = ['flat', 'name', 'contact', 'rent', 'deposit', 'payment'];
-    const diffText = (o, n) => HF.filter(k => String(o[k] ?? '') !== String(n[k] ?? '')).map(k => k + ': ' + (o[k] || '-') + ' → ' + (n[k] || '-')).join(', ') || 'type/order updated';
-    function renderHistory() {
-      $('histList').innerHTML = histRows.length ? histRows.map(h => {
-        const r = h.new_row || h.old_row || {};
-        const what = h.op === 'UPDATE' ? diffText(h.old_row, h.new_row) : h.op === 'INSERT' ? 'Added' : 'Deleted';
-        return `<div class="hrow" data-hid="${h.id}"><div><b>${esc(h.op)}</b> · Flat ${esc(r.flat)} · ${esc(r.name || '-')}<div class="muted">${esc(what)}</div><div class="muted">${esc(new Date(h.changed_at).toLocaleString('en-IN'))} · ${esc(h.changed_by || '')}</div></div><button class="btn restoreBtn" style="padding:6px 9px;white-space:nowrap">${h.op === 'INSERT' ? 'Undo add' : h.op === 'DELETE' ? 'Restore' : 'Restore previous'}</button></div>`
-      }).join('') : '<div class="muted">No history yet.</div>'
-    }
-    async function openHistory() {
-      const { data: rows, error } = await sb.from('guest_history').select('*').order('changed_at', { ascending: false }).order('id', { ascending: false }).limit(100);
-      if (error) return note('Could not load history: ' + error.message, true); histRows = rows; renderHistory(); $('histPanel').classList.remove('hidden')
-    }
-    async function restoreHist(id) {
-      const h = histRows.find(x => x.id === Number(id)); if (!h) return; if (!confirm('Restore this change?')) return; let r;
-      if (h.op === 'INSERT') r = await sb.from('guests').delete().eq('id', h.guest_id);
-      else { const o = h.old_row; r = await sb.from('guests').upsert({ id: o.id, sort_order: o.sort_order, flat: o.flat, type: o.type, name: o.name, contact: o.contact, rent: o.rent, deposit: o.deposit, payment: o.payment }) }
-      if (r.error) return note('Restore failed: ' + r.error.message, true);
-      await loadData(); render(); await openHistory(); note('Change restored.')
-    }
-    document.addEventListener('click', e => { const b = e.target.closest('.restoreBtn'); if (b) restoreHist(b.closest('[data-hid]').dataset.hid) });
-    $('histBtn').onclick = openHistory; $('closeHist').onclick = () => $('histPanel').classList.add('hidden');
-    $('backupBtn').onclick = async () => {
-      const { data: h } = await sb.from('guest_history').select('*').order('id').limit(10000);
-      const blob = new Blob([JSON.stringify({ exported_at: new Date().toISOString(), guests: data, history: h || [] }, null, 1)], { type: 'application/json' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'yolo-nest-backup-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); URL.revokeObjectURL(a.href)
-    };
-
-    // ---------- AI link guide ----------
-    function guideText() {
-      const base = location.protocol === 'file:' ? 'https://YOUR-HOSTED-APP-URL/' : location.origin + location.pathname;
-      const ex = [{ op: 'update', match: { flat: '101', name: 'Rahul sinha' }, set: { payment: 'Paid' } }, { op: 'add', flat: '102', name: 'New Guest', contact: '9876543210', rent: '5500', deposit: '5500' }];
-      return `You create one-click links that edit my PG tenant register.
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Yolo Nest PG Manager</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#172033;background:#f4f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1200px;margin:auto;padding:18px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{font-size:22px;font-weight:800}.muted{color:#687386;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.stat,.panel,.guest{background:white;border:1px solid #e1e6ef;border-radius:13px;padding:14px}.stat small{display:block;color:#697386}.stat b{font-size:24px;display:block;margin-top:6px}.actions,.filters{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.btn{border:1px solid #d7deea;background:white;padding:11px 14px;border-radius:9px;font-weight:700;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}.danger{color:#c0392b}.panel{margin:12px 0}.field{padding:10px;border:1px solid #d7deea;border-radius:8px;background:white;width:100%;min-width:0}label{font-size:12px;font-weight:700;color:#596579;display:block;margin:0 0 5px}.filters>div{flex:1;min-width:145px}.gridform{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none!important}.guestlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.guest h3{margin:3px 0 5px;font-size:16px}.guest .meta{font-size:12px;color:#687386;margin-bottom:12px}.guestfields{display:grid;grid-template-columns:1fr 1fr;gap:9px}.guestfields>div{min-width:0}.guestfields input,.guestfields select{display:block;width:100%;min-height:42px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172033;font-size:14px;line-height:1.3}.guestfields>div:first-child select.flatEdit{width:100%;min-width:0}.quickAdd{font-size:11px;white-space:nowrap}.guestfields select.flatEdit{width:100%!important;min-width:110px!important;max-width:100%;padding-right:26px;white-space:nowrap}.tablewrap td:nth-child(2){min-width:125px}.tablewrap td select.flatEdit{width:110px!important;min-width:110px!important}.guestfields .full{grid-column:1/-1}.badge{font-size:11px;padding:5px 8px;border-radius:20px;background:#eef2f8;display:inline-block}.badge.Paid{background:#dcf5e8;color:#147348}.badge.Pending{background:#fff0d8;color:#9a5a00}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:950px;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid #e8ecf2}th{color:#657084}td input,td select{width:100%;padding:7px;border:1px solid #d7deea;border-radius:6px}.roomrow{margin:12px 0}.roomchips{display:flex;flex-wrap:wrap;gap:7px}.room{font-size:12px;border:1px solid #dce3ec;border-radius:7px;padding:7px}.room.fullroom{border-color:#26986b;background:#e8f7ef}.notice{font-size:13px;color:#147348;min-height:20px;margin:8px 0}
+@media(max-width:700px){.wrap{padding:12px}.stats{grid-template-columns:1fr 1fr}.guestlist{grid-template-columns:1fr}.head{align-items:flex-start}.brand{font-size:19px}.actions .btn{flex:1}.gridform{grid-template-columns:1fr 1fr}.panel{padding:12px}}
+.ov{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}.modal{background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:16px}.chg{padding:9px 10px;border:1px solid #e1e6ef;border-radius:9px;margin:7px 0;font-size:13px}.chg.bad{background:#fdecea;border-color:#f3b8b2;color:#8f2a20}.chg.good{background:#f1faf5}.tag{font-size:11px;font-weight:800;padding:2px 7px;border-radius:12px;margin-right:6px;background:#eef2f8}.hrow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #e8ecf2;font-size:13px}textarea.field{min-height:170px;font-family:monospace;font-size:12px}#histList{max-height:420px;overflow:auto}
+</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script></head>
+<body><main class="wrap">
+<header class="head"><div><div class="brand">YOLO NEST</div><div class="muted">Co-Living · PG Manager</div></div><div style="display:flex;gap:8px;align-items:center"><span class="badge" id="syncBadge">Offline</span><button class="btn hidden" id="logoutBtn" type="button">Logout</button></div></header>
+<section class="panel" id="loginPanel" style="max-width:380px;margin:40px auto"><b>Staff login</b><p class="muted">Sign in to view and edit the tenant register.</p><label>Email</label><input id="loginEmail" class="field" type="email" autocomplete="username"><label style="margin-top:10px">Password</label><input id="loginPass" class="field" type="password" autocomplete="current-password"><button class="btn primary" id="loginBtn" style="width:100%;margin-top:13px" type="button">Login</button><div class="notice" id="loginMsg" style="color:#c0392b"></div></section>
+<div id="appRoot" class="hidden">
+<section class="stats"><div class="stat"><small>Total guests</small><b id="total">63</b></div><div class="stat"><small>Occupied rooms</small><b id="occupied">—</b></div><div class="stat"><small>PG guests</small><b id="pgcount">—</b></div><div class="stat"><small>Empty rooms</small><b id="empty">—</b></div></section>
+<div class="actions"><button class="btn primary" id="addBtn">＋ Add Guest</button><button class="btn" id="editBtn">✎ Edit Mode: OFF</button><button class="btn" id="exportBtn">↓ Export Excel</button><button class="btn" id="histBtn">🕘 History</button><button class="btn" id="backupBtn">↓ Backup (JSON)</button><button class="btn" id="guideBtn">🔗 AI Link Guide</button><button class="btn" id="resetBtn">Reset Filters</button></div>
+<section class="panel hidden" id="histPanel"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>Change History (latest 100)</b><button class="btn" id="closeHist">✕</button></div><div id="histList"></div></section>
+<section class="panel hidden" id="guidePanel"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>AI Link Guide</b><button class="btn" id="closeGuide">✕</button></div><p class="muted">Paste these instructions into any AI once. Then ask e.g. "mark Rahul in 101 as paid" and it replies with a link. Clicking it opens this app, shows the changes, and applies them when you press Apply.</p><textarea id="guideText" class="field" readonly></textarea><div class="actions"><button class="btn primary" id="copyGuide">Copy AI instructions</button><button class="btn" id="copyList">Copy guest list (no phone numbers)</button></div></section>
+<div class="ov hidden" id="ov"><div class="modal" id="modalBody"></div></div>
+<section class="panel hidden" id="addPanel"><div style="display:flex;justify-content:space-between;margin-bottom:12px"><b>Add New Guest</b><button class="btn" id="closeAdd">✕</button></div><div class="gridform">
+<div><label>Flat No.</label><select id="newFlat" class="field"></select></div><div><label>Accommodation Type</label><select id="newType" class="field"><option>PG (Bed Wise)</option><option>Rented Flat</option><option>Empty</option></select></div>
+<div class="full"><label>Guest Name</label><input id="newName" class="field" placeholder="Full name"></div><div class="full"><label>Contact Number</label><input id="newContact" class="field" inputmode="numeric" maxlength="10" placeholder="10-digit mobile"></div>
+<div><label>Rent (₹)</label><input id="newRent" class="field" type="number"></div><div><label>Deposit (₹)</label><input id="newDeposit" class="field" type="number"></div><div class="full"><label>Payment Status</label><select id="newPayment" class="field"><option>Not Updated</option><option>Paid</option><option>Pending</option><option>Partially Paid</option><option>Not Applicable</option></select></div></div><button id="saveGuest" class="btn primary" style="width:100%;margin-top:13px">Save Guest</button></section>
+<section class="panel"><b>Guest Directory</b><div class="filters"><div><input id="search" class="field" placeholder="Search name, contact or room"></div><div><select id="roomFilter" class="field"><option value="">All rooms</option></select></div><div><select id="paymentFilter" class="field"><option value="">All payment statuses</option><option>Paid</option><option>Pending</option><option>Partially Paid</option><option>Not Updated</option><option>Not Applicable</option></select></div></div><div class="muted" id="resultCount">63 records</div><div class="notice" id="notice"></div></section>
+<div style="margin:10px 0"><button class="btn" id="toggleMobileList" type="button">Show Individual Guest List</button></div>
+<div id="mobileListWrap" class="hidden"><div id="mobileList" class="guestlist"></div></div><section class="panel tablewrap" id="desktopList"><table><thead><tr><th>Sr.</th><th>Flat</th><th>Accommodation</th><th>Tenant</th><th>Contact</th><th>Rent ₹</th><th>Deposit ₹</th><th>Payment</th><th>Action</th></tr></thead><tbody id="tableBody"></tbody></table></section>
+<section class="panel"><b>Room Overview</b><p class="muted">All 30 rooms · 6 rooms per floor</p><div id="roomOverview"></div></section>
+<p class="muted" style="text-align:center">Data is saved to Supabase. Export regularly for backup.</p>
+</div></main>
+<script>
+// ====== 1. PUT YOUR SUPABASE DETAILS HERE (Project Settings > API) ======
+const SUPABASE_URL='https://aaobmdfcuargiacdstqk.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_3FwMmgHvVZPnh40z8lhCrw_-NMxYJBo';
+// ========================================================================
+const _m=$m=>{const e=document.getElementById('loginMsg');if(e)e.textContent=$m};
+if(typeof supabase==='undefined'){_m('Supabase library did not load. Check your internet connection or ad-blocker, then reload.');throw new Error('supabase-js missing')}
+if(SUPABASE_URL.includes('YOUR-PROJECT')||SUPABASE_ANON_KEY.includes('YOUR-ANON')){_m('Setup needed: open this HTML file in a text editor and paste your Supabase Project URL and anon/publishable key at the top.');throw new Error('Supabase keys not set')}
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const seed = [];
+const rooms=Array.from({length:5},(_,f)=>Array.from({length:6},(_,r)=>String((f+1)*100+r+1))).flat();
+const COLS='id,sort_order,flat,type,name,contact,rent,deposit,payment';
+let data=[],edit=false,addAfterId=null;
+const types=['PG (Bed Wise)','Rented Flat','Empty'],payments=['Paid','Pending','Partially Paid','Not Updated','Not Applicable'];
+const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>\"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const toRow=g=>({flat:g.flat,type:g.type,name:g.name||'',contact:g.contact||'',rent:String(g.rent??''),deposit:String(g.deposit??''),payment:g.payment||'Not Updated'});
+function setSync(t,bad){const b=$('syncBadge');b.textContent=t;b.style.background=bad?'#fde2e0':'#dcf5e8';b.style.color=bad?'#c0392b':'#147348'}
+function note(t,bad){const n=$('notice');n.textContent=t;n.style.color=bad?'#c0392b':'#147348'}
+
+// ---------- Supabase data layer ----------
+async function loadData(){
+  setSync('Loading…');
+  const {data:rows,error}=await sb.from('guests').select(COLS).order('sort_order').order('id');
+  if(error)throw error;
+  data=rows;sortData();
+  if(!data.length){const {count,error:he}=await sb.from('guest_history').select('id',{count:'exact',head:true});if(he)throw he;if(!count)await importInitial()}
+  setSync('Synced');
+}
+async function importInitial(){
+  // first run: import this browser's old data if present, else the built-in list
+  let old=null;try{old=JSON.parse(localStorage.getItem('yolonest_manager_v1')||'null')}catch(e){}
+  let list;
+  if(Array.isArray(old)&&old.length)list=old;
+  else{let counts={};seed.forEach(x=>{if(x[1]&&x[2])counts[x[0]]=(counts[x[0]]||0)+1});
+    list=seed.map(x=>({flat:x[0],type:!x[1]||!x[2]?'Empty':counts[x[0]]>1?'PG (Bed Wise)':'Rented Flat',name:x[1],contact:x[2],rent:x[3],deposit:x[4],payment:'Not Updated'}))}
+  if(!list.length)return;const payload=list.map((g,i)=>({...toRow(g),sort_order:i+1}));
+  const {data:rows,error}=await sb.from('guests').insert(payload).select(COLS);
+  if(error)throw error;
+  data=rows;sortData();
+  note('First run: '+rows.length+' records imported into Supabase.');
+}
+async function run(p,okMsg){
+  setSync('Saving…');
+  const {error}=await p;
+  if(error){setSync('Error',true);note('Save failed: '+error.message+' — reload to resync.',true);return false}
+  setSync('Synced');if(okMsg)note(okMsg);return true;
+}
+
+// ---------- UI ----------
+const sortData=()=>data.sort((a,b)=>String(a.flat).localeCompare(String(b.flat),undefined,{numeric:true})||a.sort_order-b.sort_order||a.id-b.id);
+function save(){} // kept for compatibility; saving is now done per action
+function opts(a,v){return a.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('')}
+$('newFlat').innerHTML=opts(rooms,'101');$('roomFilter').innerHTML='<option value="">All rooms</option>'+opts(rooms,'');
+function filtered(){let q=$('search').value.toLowerCase().trim(),r=$('roomFilter').value,p=$('paymentFilter').value;return data.map((x,i)=>({...x,sr:i+1})).filter(x=>(!q||[x.name,x.contact,x.flat].join(' ').toLowerCase().includes(q))&&(!r||x.flat===r)&&(!p||(x.payment||'Not Updated')===p))}
+function select(cls,a,v){return `<select class="${cls}">${opts(a,v)}</select>`}function inp(cls,v,type='text'){return `<input class="${cls}" type="${type}" value="${esc(v)}">`}function pill(v){return `<span class="badge ${esc(v)}">${esc(v||'Not Updated')}</span>`}
+function card(x){return `<article class="guest" data-id="${x.id}"><div style="display:flex;justify-content:space-between;gap:8px"><div><div class="muted">#${x.sr} · Flat ${esc(x.flat)} ${edit?`<button class="btn quickAdd" type="button" style="padding:3px 8px;margin-left:5px">＋ Add</button>`:''}</div><h3>${esc(x.name||'Empty / unnamed entry')}</h3><div class="meta">${esc(x.contact||'No contact number')}</div></div>${pill(x.payment||'Not Updated')}</div><div class="guestfields">
+<div class="full"><label>Flat No.</label>${edit?select('flatEdit',rooms,x.flat):esc(x.flat)}</div><div><label>Accommodation</label>${edit?select('typeEdit',types,x.type):esc(x.type)}</div>
+<div><label>Rent ₹</label>${edit?inp('rentEdit',x.rent,'number'):esc(x.rent||'—')}</div><div><label>Deposit ₹</label>${edit?inp('depositEdit',x.deposit):esc(x.deposit||'—')}</div>
+<div class="full"><label>Guest Name</label>${edit?inp('nameEdit',x.name):esc(x.name||'—')}</div><div class="full"><label>Contact</label>${edit?inp('contactEdit',x.contact,'tel'):esc(x.contact||'—')}</div><div class="full"><label>Payment Status</label>${edit?select('payEdit',payments,x.payment||'Not Updated'):pill(x.payment||'Not Updated')}</div></div>${edit?'<div class="actions"><button class="btn primary saveRow">Save</button><button class="btn danger deleteRow">Delete</button></div>':''}</article>`}
+function row(x){return `<tr data-id="${x.id}"><td>${x.sr} ${edit?'<button class="btn quickAdd" type="button" style="padding:3px 7px;margin-left:4px">＋</button>':''}</td><td>${edit?select('flatEdit',rooms,x.flat):esc(x.flat)}</td><td>${edit?select('typeEdit',types,x.type):esc(x.type)}</td><td>${edit?inp('nameEdit',x.name):esc(x.name||'—')}</td><td>${edit?inp('contactEdit',x.contact):esc(x.contact||'—')}</td><td>${edit?inp('rentEdit',x.rent,'number'):esc(x.rent||'—')}</td><td>${edit?inp('depositEdit',x.deposit):esc(x.deposit||'—')}</td><td>${edit?select('payEdit',payments,x.payment||'Not Updated'):pill(x.payment||'Not Updated')}</td><td>${edit?'<button class="btn primary saveRow">Save</button> <button class="btn danger deleteRow">Delete</button>':'—'}</td></tr>`}
+function render(){let list=filtered(),occupied=new Set(data.filter(x=>x.name&&x.contact).map(x=>x.flat));$('total').textContent=data.filter(x=>x.name&&x.contact).length;$('occupied').textContent=occupied.size+'/30';$('pgcount').textContent=data.filter(x=>x.type==='PG (Bed Wise)'&&x.name).length;$('empty').textContent=rooms.filter(r=>!occupied.has(r)).length;$('resultCount').textContent=`Showing ${list.length} of ${data.length} records`;$('editBtn').textContent=edit?'✓ Edit Mode: ON':'✎ Edit Mode: OFF';$('mobileList').innerHTML=list.length?list.map(card).join(''):'<div class="panel">No matching guests.</div>';$('tableBody').innerHTML=list.map(row).join('');$('roomOverview').innerHTML=Array.from({length:5},(_,f)=>`<div class="roomrow"><b>${f+1}${['st','nd','rd','th','th'][f]} Floor</b><div class="roomchips">${rooms.slice(f*6,f*6+6).map(r=>{let n=data.filter(x=>x.flat===r&&x.name&&x.contact).length;return `<span class="room ${n?'fullroom':''}">${r} · ${n?n+' guest(s)':'Empty'}</span>`}).join('')}</div></div>`).join('')}
+function get(row){return data.find(x=>x.id===Number(row.dataset.id))}
+// recompute room types; returns guests whose type changed
+function refreshRoomTypes(){const changed=[];for(const room of rooms){const occ=data.filter(g=>g.flat===room&&g.name&&g.contact);for(const g of data.filter(g=>g.flat===room)){const t=occ.length===0?'Empty':occ.length>1?'PG (Bed Wise)':'Rented Flat';if(g.type!==t){g.type=t;changed.push(g)}}}return changed}
+async function apply(row){let x=get(row);if(!x)return;let oldFlat=x.flat;let v=c=>row.querySelector('.'+c)?.value;
+  x.flat=v('flatEdit')??x.flat;x.type=v('typeEdit')??x.type;x.name=v('nameEdit')??x.name;x.contact=v('contactEdit')??x.contact;x.rent=v('rentEdit')??x.rent;x.deposit=v('depositEdit')??x.deposit;x.payment=v('payEdit')??x.payment;
+  if(x.flat!==oldFlat)x.sort_order=Math.max(0,...data.map(g=>g.sort_order))+1;sortData();
+  const changed=refreshRoomTypes();const set=new Map([[x.id,x]]);changed.forEach(g=>set.set(g.id,g));
+  render();
+  await run(sb.from('guests').upsert([...set.values()].map(g=>({id:g.id,sort_order:g.sort_order,...toRow(g)}))),'Guest updated. Room status updated automatically.')}
+async function removeGuest(row){let x=get(row);if(!x)return;if(!confirm('Delete '+(x.name||'this entry')+' (Flat '+x.flat+')?'))return;
+  data=data.filter(g=>g.id!==x.id);const changed=refreshRoomTypes();render();
+  const ok=await run(sb.from('guests').delete().eq('id',x.id));
+  if(ok&&changed.length)await run(sb.from('guests').upsert(changed.map(g=>({id:g.id,sort_order:g.sort_order,...toRow(g)}))));
+  if(ok)note('Guest deleted.')}
+document.addEventListener('click',e=>{
+  const q=e.target.closest('.quickAdd');
+  if(q){const row=q.closest('[data-id]');const x=data.find(g=>g.id===Number(row.dataset.id));if(!x)return;addAfterId=x.id;$('newFlat').value=x.flat;$('newType').value='PG (Bed Wise)';$('addPanel').classList.remove('hidden');$('newName').focus();return}
+  const s=e.target.closest('.saveRow');if(s){apply(s.closest('[data-id]'));return}
+  const d=e.target.closest('.deleteRow');if(d){removeGuest(d.closest('[data-id]'))}
+});
+$('toggleMobileList').onclick=()=>{const box=$('mobileListWrap');const opening=box.classList.contains('hidden');box.classList.toggle('hidden');$('toggleMobileList').textContent=opening?'Hide Individual Guest List':'Show Individual Guest List';if(opening)box.scrollIntoView({behavior:'smooth',block:'start'})};
+$('addBtn').onclick=()=>$('addPanel').classList.remove('hidden');$('closeAdd').onclick=()=>$('addPanel').classList.add('hidden');$('editBtn').onclick=()=>{edit=!edit;render()};
+['search','roomFilter','paymentFilter'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+$('resetBtn').onclick=()=>{$('search').value='';$('roomFilter').value='';$('paymentFilter').value='';render()};
+$('saveGuest').onclick=async()=>{
+  let name=$('newName').value.trim(),contact=$('newContact').value.trim();
+  if(!name)return alert('Enter guest name');
+  if(contact&&!/^\d{10}$/.test(contact))return alert('Enter a valid 10-digit contact');
+  if(!$('newType').value||$('newType').value==='Empty')return alert('Choose PG or Rented Flat');
+  let flat=$('newFlat').value;
+  let idx=addAfterId===null?-1:data.findIndex(g=>g.id===addAfterId);
+  const an=idx>=0?data[idx]:null;let order;if(an&&an.flat===flat){const nx=data.filter(x=>x.flat===flat&&x.sort_order>an.sort_order).map(x=>x.sort_order);order=nx.length?(an.sort_order+Math.min(...nx))/2:an.sort_order+1}else order=Math.max(0,...data.map(x=>x.sort_order))+1;
+  const guest={flat,type:'Rented Flat',name,contact,rent:$('newRent').value,deposit:$('newDeposit').value,payment:$('newPayment').value,sort_order:order};
+  $('saveGuest').disabled=true;setSync('Saving…');
+  const {data:rows,error}=await sb.from('guests').insert({...toRow(guest),sort_order:order}).select(COLS);
+  $('saveGuest').disabled=false;
+  if(error){setSync('Error',true);return note('Could not add guest: '+error.message,true)}
+  data.push(rows[0]);sortData();
+  addAfterId=null;const changed=refreshRoomTypes();
+  ['newName','newContact','newRent','newDeposit'].forEach(id=>$(id).value='');$('addPanel').classList.add('hidden');render();
+  if(changed.length)await run(sb.from('guests').upsert(changed.map(g=>({id:g.id,sort_order:g.sort_order,...toRow(g)}))));
+  setSync('Synced');note('Guest added. Serial numbers and room status updated.')};
+// Export: Excel-compatible CSV (opens directly in Excel)
+$('exportBtn').onclick=()=>{const h=['Sr','Flat','Accommodation','Tenant','Contact','Rent','Deposit','Payment'];
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[h.map(q).join(',')].concat(data.map((x,i)=>[i+1,x.flat,x.type,x.name,x.contact?'\t'+x.contact:'',x.rent,x.deposit,x.payment].map(q).join(',')));
+  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='yolo-nest-guests-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(a.href)};
+
+// ---------- Change links (?changes=...) ----------
+const norm=s=>String(s??'').toLowerCase().replace(/\s+/g,' ').trim();
+const LINK_FIELDS=['flat','name','contact','rent','deposit','payment'];
+let pending=null,plan=null,histRows=[];
+(function readLink(){const c=new URLSearchParams(location.search).get('changes');if(c===null)return;
+  try{pending=JSON.parse(c);if(!Array.isArray(pending))pending=[pending]}catch(e){pending=[{op:'invalid'}]}
+  history.replaceState(null,'',location.pathname)})();
+function cleanFields(s){const f={};for(const k of LINK_FIELDS){if(s&&s[k]!==undefined&&s[k]!==null){const v=String(s[k]).trim();
+  if(k==='flat'&&!rooms.includes(v))throw 'Invalid flat "'+v+'"';
+  if(k==='payment'&&!payments.includes(v))throw 'Invalid payment status "'+v+'"';
+  if(k==='contact'&&v&&!/^\d{10}$/.test(v))throw 'Contact must be 10 digits';
+  f[k]=v}}return f}
+function findIn(list,m){
+  if(!m||typeof m!=='object'||!Object.keys(m).length)return{err:'No match details given'};
+  let r=list.filter(g=>!g._del&&(m.id===undefined||g.id===Number(m.id))&&(m.flat===undefined||String(g.flat)===String(m.flat))&&(m.contact===undefined||String(g.contact)===String(m.contact)));
+  if(m.name!==undefined){const n=norm(m.name);const ex=r.filter(g=>norm(g.name)===n);r=ex.length?ex:r.filter(g=>n&&norm(g.name).includes(n))}
+  if(!r.length)return{err:'No guest found for '+JSON.stringify(m)};
+  if(r.length>1)return{err:r.length+' guests match '+JSON.stringify(m)+' - add flat or contact'};
+  return{g:r[0]}}
+function fixTypes(list){for(const room of rooms){const inRoom=list.filter(g=>!g._del&&g.flat===room);const occ=inRoom.filter(g=>g.name&&g.contact).length;
+  for(const g of inRoom){const t=occ===0?'Empty':occ>1?'PG (Bed Wise)':'Rented Flat';if(g.type!==t){g.type=t;if(!g._new)g._dirty=true}}}}
+function buildPlan(list){
+  const work=data.map(g=>({...g}));let tmp=-1;const items=[];
+  list.slice(0,50).forEach(c=>{
+    const it={ok:false,tag:String(c&&c.op||'?').toUpperCase(),text:'',err:''};items.push(it);
+    try{
+      if(!c||typeof c!=='object')throw 'Bad item';
+      if(c.op==='add'){
+        const f=cleanFields(c.set||c);if(!f.name)throw 'Name is required';if(!f.flat)throw 'Flat is required';
+        let pos=work.length,anc=null;if(c.after){const r=findIn(work,c.after);if(r.err)throw 'after: '+r.err;anc=r.g;pos=work.indexOf(r.g)+1}
+        work.splice(pos,0,{id:tmp--,_new:true,_anchor:anc,flat:f.flat,type:'Rented Flat',name:f.name,contact:f.contact||'',rent:f.rent||'',deposit:f.deposit||'',payment:f.payment||'Not Updated'});
+        it.text='Add '+f.name+' to flat '+f.flat+[f.contact&&'contact '+f.contact,f.rent&&'rent '+f.rent,f.deposit&&'deposit '+f.deposit,f.payment&&'payment '+f.payment].filter(Boolean).map(x=>' · '+x).join('');
+      }else if(c.op==='update'){
+        const r=findIn(work,c.match);if(r.err)throw r.err;const f=cleanFields(c.set);
+        const ch=Object.keys(f).filter(k=>String(r.g[k]??'')!==f[k]);
+        it.text='Flat '+r.g.flat+' · '+(r.g.name||'unnamed');
+        if(!Object.keys(f).length)throw 'Nothing to change';if(!ch.length)throw 'Already set - no change';
+        it.text+=': '+ch.map(k=>k+' '+(r.g[k]||'-')+' → '+(f[k]||'-')).join(', ');
+        const pf=r.g.flat;Object.assign(r.g,f);if(f.flat&&f.flat!==pf)r.g._move=true;if(!r.g._new)r.g._dirty=true;
+      }else if(c.op==='delete'){
+        const r=findIn(work,c.match);if(r.err)throw r.err;r.g._del=true;it.text='Delete '+(r.g.name||'unnamed')+' (flat '+r.g.flat+')';
+      }else throw 'Unknown op "'+c.op+'"';
+      it.ok=true;
+    }catch(e){it.err=String(e&&e.message||e);if(!it.text)it.text=JSON.stringify(c).slice(0,110)}
+  });
+  return{work,items}}
+function openModal(h){$('modalBody').innerHTML=h;$('ov').classList.remove('hidden')}
+function closeModal(){$('ov').classList.add('hidden')}
+function openPlan(){
+  plan=buildPlan(pending);pending=null;const good=plan.items.filter(i=>i.ok).length;
+  openModal('<b style="font-size:16px">Review changes from link</b><p class="muted">Nothing is saved until you press Apply.</p>'+
+    plan.items.map(i=>`<div class="chg ${i.ok?'good':'bad'}"><span class="tag">${esc(i.tag)}</span>${esc(i.text)}${i.ok?'':' <b>— '+esc(i.err)+' (skipped)</b>'}</div>`).join('')+
+    `<div class="actions"><button class="btn primary" id="applyPlan" ${good?'':'disabled'}>Apply ${good} change${good===1?'':'s'}</button><button class="btn" id="cancelPlan">Cancel</button></div>`);
+  $('cancelPlan').onclick=()=>{plan=null;closeModal()};$('applyPlan').onclick=applyPlan}
+function assignOrders(work){const live=work.filter(g=>!g._del);let mx=Math.max(0,...live.filter(g=>!g._new&&!g._move).map(g=>g.sort_order));
+  for(const g of live){if(!g._new&&!g._move)continue;let o;const an=g._anchor;
+    if(an&&an!==g&&an.flat===g.flat&&an.sort_order!==undefined){const nx=live.filter(x=>x!==g&&x.flat===g.flat&&x.sort_order!==undefined&&x.sort_order>an.sort_order).map(x=>x.sort_order);o=nx.length?(an.sort_order+Math.min(...nx))/2:an.sort_order+1}
+    else o=mx+1;
+    g.sort_order=o;if(o>mx)mx=o;if(g._move)g._dirty=true}}
+async function applyPlan(){
+  const p=plan;if(!p)return;plan=null;closeModal();const work=p.work,good=p.items.filter(i=>i.ok).length;
+  fixTypes(work);assignOrders(work);const live=work.filter(g=>!g._del);
+  const dels=work.filter(g=>g._del&&!g._new).map(g=>g.id);
+  const upd=work.filter(g=>g._dirty&&!g._del&&!g._new).map(g=>({id:g.id,sort_order:g.sort_order,...toRow(g)}));
+  const adds=live.filter(g=>g._new).map(g=>({sort_order:g.sort_order,...toRow(g)}));
+  setSync('Saving…');let err=null;
+  if(dels.length){const r=await sb.from('guests').delete().in('id',dels);err=err||r.error}
+  if(!err&&upd.length){const r=await sb.from('guests').upsert(upd);err=err||r.error}
+  if(!err&&adds.length){const r=await sb.from('guests').insert(adds);err=err||r.error}
+  try{await loadData()}catch(e){err=err||e}render();
+  if(err){setSync('Error',true);note('Some changes failed: '+err.message,true)}else note(good+' change'+(good===1?'':'s')+' applied from link.')}
+
+// ---------- History / restore ----------
+const HF=['flat','name','contact','rent','deposit','payment'];
+const diffText=(o,n)=>HF.filter(k=>String(o[k]??'')!==String(n[k]??'')).map(k=>k+': '+(o[k]||'-')+' → '+(n[k]||'-')).join(', ')||'type/order updated';
+function renderHistory(){$('histList').innerHTML=histRows.length?histRows.map(h=>{const r=h.new_row||h.old_row||{};
+  const what=h.op==='UPDATE'?diffText(h.old_row,h.new_row):h.op==='INSERT'?'Added':'Deleted';
+  return `<div class="hrow" data-hid="${h.id}"><div><b>${esc(h.op)}</b> · Flat ${esc(r.flat)} · ${esc(r.name||'-')}<div class="muted">${esc(what)}</div><div class="muted">${esc(new Date(h.changed_at).toLocaleString('en-IN'))} · ${esc(h.changed_by||'')}</div></div><button class="btn restoreBtn" style="padding:6px 9px;white-space:nowrap">${h.op==='INSERT'?'Undo add':h.op==='DELETE'?'Restore':'Restore previous'}</button></div>`}).join(''):'<div class="muted">No history yet.</div>'}
+async function openHistory(){const {data:rows,error}=await sb.from('guest_history').select('*').order('changed_at',{ascending:false}).order('id',{ascending:false}).limit(100);
+  if(error)return note('Could not load history: '+error.message,true);histRows=rows;renderHistory();$('histPanel').classList.remove('hidden')}
+async function restoreHist(id){const h=histRows.find(x=>x.id===Number(id));if(!h)return;if(!confirm('Restore this change?'))return;let r;
+  if(h.op==='INSERT')r=await sb.from('guests').delete().eq('id',h.guest_id);
+  else{const o=h.old_row;r=await sb.from('guests').upsert({id:o.id,sort_order:o.sort_order,flat:o.flat,type:o.type,name:o.name,contact:o.contact,rent:o.rent,deposit:o.deposit,payment:o.payment})}
+  if(r.error)return note('Restore failed: '+r.error.message,true);
+  await loadData();render();await openHistory();note('Change restored.')}
+document.addEventListener('click',e=>{const b=e.target.closest('.restoreBtn');if(b)restoreHist(b.closest('[data-hid]').dataset.hid)});
+$('histBtn').onclick=openHistory;$('closeHist').onclick=()=>$('histPanel').classList.add('hidden');
+$('backupBtn').onclick=async()=>{const {data:h}=await sb.from('guest_history').select('*').order('id').limit(10000);
+  const blob=new Blob([JSON.stringify({exported_at:new Date().toISOString(),guests:data,history:h||[]},null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='yolo-nest-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href)};
+
+// ---------- AI link guide ----------
+function guideText(){
+  const base=location.protocol==='file:'?'https://YOUR-HOSTED-APP-URL/':location.origin+location.pathname;
+  const ex=[{op:'update',match:{flat:'101',name:'Rahul sinha'},set:{payment:'Paid'}},{op:'add',flat:'102',name:'New Guest',contact:'9876543210',rent:'5500',deposit:'5500'}];
+  return `You create one-click links that edit my PG tenant register.
 Link format: ${base}?changes=<URL-encoded JSON array>
 Build the JSON array, then encode it with encodeURIComponent (spaces become %20, never "+").
 Each array item is one of:
@@ -759,29 +244,23 @@ flat must be one of: 101-106, 201-206, 301-306, 401-406, 501-506. contact must b
 "match" must identify exactly ONE guest: use flat + name exactly as in the register (or contact). Never guess names or numbers - ask me if unsure.
 Keep each link to 40 changes or fewer.
 Reply with the link as a clickable markdown link, plus one plain line per change so I can double-check before clicking.
-Example link: ${base}?changes=${encodeURIComponent(JSON.stringify(ex))}`
-    }
-    function openGuide() { $('guideText').value = guideText(); $('guidePanel').classList.remove('hidden') }
-    async function copyText(t, msg) { try { await navigator.clipboard.writeText(t); note(msg) } catch (e) { $('guideText').value = t; $('guideText').select(); note('Press Ctrl/Cmd+C to copy the selected text.') } }
-    $('guideBtn').onclick = openGuide; $('closeGuide').onclick = () => $('guidePanel').classList.add('hidden');
-    $('copyGuide').onclick = () => copyText(guideText(), 'AI instructions copied. Paste them into your AI chat once.');
-    $('copyList').onclick = () => copyText('Current guests (flat | name | rent | deposit | payment):\n' + data.map(g => [g.flat, g.name || '-', g.rent || '-', g.deposit || '-', g.payment || 'Not Updated'].join(' | ')).join('\n'), 'Guest list copied (phone numbers not included).');
+Example link: ${base}?changes=${encodeURIComponent(JSON.stringify(ex))}`}
+function openGuide(){$('guideText').value=guideText();$('guidePanel').classList.remove('hidden')}
+async function copyText(t,msg){try{await navigator.clipboard.writeText(t);note(msg)}catch(e){$('guideText').value=t;$('guideText').select();note('Press Ctrl/Cmd+C to copy the selected text.')}}
+$('guideBtn').onclick=openGuide;$('closeGuide').onclick=()=>$('guidePanel').classList.add('hidden');
+$('copyGuide').onclick=()=>copyText(guideText(),'AI instructions copied. Paste them into your AI chat once.');
+$('copyList').onclick=()=>copyText('Current guests (flat | name | rent | deposit | payment):\n'+data.map(g=>[g.flat,g.name||'-',g.rent||'-',g.deposit||'-',g.payment||'Not Updated'].join(' | ')).join('\n'),'Guest list copied (phone numbers not included).');
 
-    // ---------- Auth ----------
-    async function showApp() {
-      $('loginPanel').classList.add('hidden'); $('appRoot').classList.remove('hidden'); $('logoutBtn').classList.remove('hidden');
-      try { await loadData(); render(); if (pending) openPlan() } catch (e) { setSync('Error', true); $('appRoot').classList.remove('hidden'); render(); note('Could not load data: ' + e.message, true) }
-    }
-    function showLogin() { data = []; $('appRoot').classList.add('hidden'); $('logoutBtn').classList.add('hidden'); $('loginPanel').classList.remove('hidden'); setSync('Offline', true) }
-    $('loginBtn').onclick = async () => {
-      $('loginMsg').textContent = '';
-      const { error } = await sb.auth.signInWithPassword({ email: $('loginEmail').value.trim(), password: $('loginPass').value });
-      if (error) $('loginMsg').textContent = /fetch|network/i.test(error.message) ? 'Cannot reach Supabase. Check the Project URL in the file (it must look like https://abcd1234.supabase.co).' : error.message; else showApp()
-    };
-    $('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') $('loginBtn').click() });
-    $('logoutBtn').onclick = async () => { await sb.auth.signOut(); showLogin() };
-    (async () => { const { data: { session } } = await sb.auth.getSession(); if (session) showApp(); else showLogin() })();
-  </script>
-</body>
-
-</html>
+// ---------- Auth ----------
+async function showApp(){
+  $('loginPanel').classList.add('hidden');$('appRoot').classList.remove('hidden');$('logoutBtn').classList.remove('hidden');
+  try{await loadData();render();if(pending)openPlan()}catch(e){setSync('Error',true);$('appRoot').classList.remove('hidden');render();note('Could not load data: '+e.message,true)}
+}
+function showLogin(){data=[];$('appRoot').classList.add('hidden');$('logoutBtn').classList.add('hidden');$('loginPanel').classList.remove('hidden');setSync('Offline',true)}
+$('loginBtn').onclick=async()=>{$('loginMsg').textContent='';
+  const {error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});
+  if(error)$('loginMsg').textContent=/fetch|network/i.test(error.message)?'Cannot reach Supabase. Check the Project URL in the file (it must look like https://abcd1234.supabase.co).':error.message;else showApp()};
+$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
+$('logoutBtn').onclick=async()=>{await sb.auth.signOut();showLogin()};
+(async()=>{const {data:{session}}=await sb.auth.getSession();if(session)showApp();else showLogin()})();
+</script></body></html>

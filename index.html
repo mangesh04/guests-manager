@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#2457d6"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yolo Nest"><meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Yolo Nest PG Manager</title>
 <style>
 :root{font-family:Arial,sans-serif;color:#172033;background:#f4f6fa}*{box-sizing:border-box}body{margin:0}.wrap{max-width:1200px;margin:auto;padding:18px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}.brand{font-size:22px;font-weight:800}.muted{color:#687386;font-size:12px}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.stat,.panel,.guest{background:white;border:1px solid #e1e6ef;border-radius:13px;padding:14px}.stat small{display:block;color:#697386}.stat b{font-size:24px;display:block;margin-top:6px}.actions,.filters{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}.btn{border:1px solid #d7deea;background:white;padding:11px 14px;border-radius:9px;font-weight:700;cursor:pointer}.primary{background:#2457d6;color:white;border-color:#2457d6}.danger{color:#c0392b}.panel{margin:12px 0}.field{padding:10px;border:1px solid #d7deea;border-radius:8px;background:white;width:100%;min-width:0}label{font-size:12px;font-weight:700;color:#596579;display:block;margin:0 0 5px}.filters>div{flex:1;min-width:145px}.gridform{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hidden{display:none!important}.guestlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.guest h3{margin:3px 0 5px;font-size:16px}.guest .meta{font-size:12px;color:#687386;margin-bottom:12px}.guestfields{display:grid;grid-template-columns:1fr 1fr;gap:9px}.guestfields>div{min-width:0}.guestfields input,.guestfields select{display:block;width:100%;min-height:42px;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172033;font-size:14px;line-height:1.3}.guestfields>div:first-child select.flatEdit{width:100%;min-width:0}.quickAdd{font-size:11px;white-space:nowrap}.guestfields select.flatEdit{width:100%!important;min-width:110px!important;max-width:100%;padding-right:26px;white-space:nowrap}.tablewrap td:nth-child(2){min-width:125px}.tablewrap td select.flatEdit{width:110px!important;min-width:110px!important}.guestfields .full{grid-column:1/-1}.badge{font-size:11px;padding:5px 8px;border-radius:20px;background:#eef2f8;display:inline-block}.badge.Paid{background:#dcf5e8;color:#147348}.badge.Pending{background:#fff0d8;color:#9a5a00}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:1350px;font-size:13px}th,td{text-align:left;padding:9px;border-bottom:1px solid #e8ecf2}th{color:#657084}td input,td select{width:100%;padding:7px;border:1px solid #d7deea;border-radius:6px}.tablewrap td:nth-child(7),.tablewrap td:nth-child(9){min-width:125px}.tablewrap td:nth-child(10){min-width:200px;white-space:pre-wrap}.vrow td{background:#fafbfd}.roomrow{margin:12px 0}.roomchips{display:flex;flex-wrap:wrap;gap:7px}.room{font-size:12px;border:1px solid #dce3ec;border-radius:7px;padding:7px}.room.fullroom{border-color:#26986b;background:#e8f7ef}.notice{font-size:13px;color:#147348;min-height:20px;margin:8px 0}
 @media(max-width:700px){.wrap{padding:12px}.stats{grid-template-columns:1fr 1fr}.guestlist{grid-template-columns:1fr}.head{align-items:flex-start}.brand{font-size:19px}.actions .btn{flex:1}.gridform{grid-template-columns:1fr 1fr}.panel{padding:12px}}
 .ov{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}.modal{background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:85vh;overflow:auto;padding:16px}.chg{padding:9px 10px;border:1px solid #e1e6ef;border-radius:9px;margin:7px 0;font-size:13px}.chg.bad{background:#fdecea;border-color:#f3b8b2;color:#8f2a20}.chg.good{background:#f1faf5}.tag{font-size:11px;font-weight:800;padding:2px 7px;border-radius:12px;margin-right:6px;background:#eef2f8}.hday{display:flex;justify-content:space-between;background:#eef2f8;border-radius:8px;padding:7px 10px;margin:12px 0 2px;font-size:12px;font-weight:800;color:#44506a;position:sticky;top:0}.hrow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #e8ecf2;font-size:13px}textarea.field{min-height:170px;font-family:monospace;font-size:12px}#histList{max-height:520px;overflow:auto}
-</style><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script></head>
+
+.wrap{padding-top:max(18px,env(safe-area-inset-top));padding-bottom:max(18px,env(safe-area-inset-bottom))}#pwaBar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;gap:10px;align-items:center;justify-content:center;padding:10px 14px calc(10px + env(safe-area-inset-bottom));font-size:13px;font-weight:700;background:#172033;color:#fff}#pwaBar button{border:0;border-radius:7px;padding:7px 12px;font-weight:800;cursor:pointer}
+</style><script src="vendor/supabase.min.js"></script></head>
 <body><main class="wrap">
 <header class="head"><div><div class="brand">YOLO NEST</div><div class="muted">Co-Living · PG Manager</div></div><div style="display:flex;gap:8px;align-items:center"><span class="badge" id="syncBadge">Offline</span><button class="btn hidden" id="logoutBtn" type="button">Logout</button></div></header>
 <section class="panel" id="loginPanel" style="max-width:380px;margin:40px auto"><b>Staff login</b><p class="muted">Sign in to view and edit the tenant register.</p><label>Email</label><input id="loginEmail" class="field" type="email" autocomplete="username"><label style="margin-top:10px">Password</label><input id="loginPass" class="field" type="password" autocomplete="current-password"><button class="btn primary" id="loginBtn" style="width:100%;margin-top:13px" type="button">Login</button><div class="notice" id="loginMsg" style="color:#c0392b"></div></section>
@@ -305,4 +307,24 @@ $('loginBtn').onclick=async()=>{$('loginMsg').textContent='';
 $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click()});
 $('logoutBtn').onclick=async()=>{await sb.auth.signOut();showLogin()};
 (async()=>{const {data:{session}}=await sb.auth.getSession();if(session)showApp();else showLogin()})();
-</script></body></html>
+</script>
+<script>
+// ---------- PWA: service worker, offline bar, update prompt ----------
+(function(){
+  const bar=document.getElementById('pwaBar'),msg=document.getElementById('pwaMsg'),btn=document.getElementById('pwaBtn');
+  function show(t,withBtn){msg.textContent=t;btn.classList.toggle('hidden',!withBtn);bar.style.display='flex'}
+  function hide(){bar.style.display='none'}
+  function net(){navigator.onLine?hide():show('You are offline. Data cannot load or save until you reconnect.',false)}
+  addEventListener('online',()=>{net();if(typeof sb!=='undefined'&&typeof loadData==='function'&&!document.getElementById('appRoot').classList.contains('hidden')){loadData().then(render).catch(()=>{})}});
+  addEventListener('offline',net);net();
+  if(!('serviceWorker' in navigator)||location.protocol==='file:')return;
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    function prompt(w){show('A new version is available.',true);btn.onclick=()=>w.postMessage('SKIP_WAITING')}
+    if(reg.waiting&&navigator.serviceWorker.controller)prompt(reg.waiting);
+    reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)prompt(w)})});
+  }).catch(()=>{});
+  let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()});
+})();
+</script>
+<div id="pwaBar"><span id="pwaMsg"></span><button id="pwaBtn" type="button" class="hidden">Update</button></div>
+</body></html>

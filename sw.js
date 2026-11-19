@@ -1,7 +1,7 @@
 // Yolo Nest service worker.
 // Caches ONLY the app shell. Supabase API/auth calls are never cached
 // (tenant data is private and must always be fresh).
-const VERSION = 'v1';                       // bump this on every deploy
+const VERSION = 'v2';                       // bump this on every deploy
 const CACHE = 'yolonest-shell-' + VERSION;
 const SHELL = [
   './',
@@ -12,9 +12,17 @@ const SHELL = [
   './icons/icon-512.png',
   './icons/apple-touch-icon.png'
 ];
+// Export libraries (Excel/PDF). Cached if present; a missing file will not break the install.
+const OPTIONAL = [
+  './vendor/exceljs.min.js',
+  './vendor/jspdf.umd.min.js',
+  './vendor/jspdf.plugin.autotable.min.js'
+];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  e.waitUntil(caches.open(CACHE).then(c =>
+    c.addAll(SHELL).then(() => Promise.all(OPTIONAL.map(u => c.add(u).catch(() => { }))))
+  ));
   // no skipWaiting here: the page decides when to apply updates
 });
 

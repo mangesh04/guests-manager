@@ -15,7 +15,7 @@
 <section class="panel" id="loginPanel" style="max-width:380px;margin:40px auto"><b>Staff login</b><p class="muted">Sign in to view and edit the tenant register.</p><label>Email</label><input id="loginEmail" class="field" type="email" autocomplete="username"><label style="margin-top:10px">Password</label><input id="loginPass" class="field" type="password" autocomplete="current-password"><button class="btn primary" id="loginBtn" style="width:100%;margin-top:13px" type="button">Login</button><div class="notice" id="loginMsg" style="color:#c0392b"></div></section>
 <div id="appRoot" class="hidden">
 <section class="stats"><div class="stat"><small>Total guests</small><b id="total">63</b></div><div class="stat"><small>Occupied rooms</small><b id="occupied">—</b></div><div class="stat"><small>PG guests</small><b id="pgcount">—</b></div><div class="stat"><small>Empty rooms</small><b id="empty">—</b></div></section>
-<div class="actions"><button class="btn primary" id="addBtn">＋ Add Guest</button><button class="btn" id="editBtn">✎ Edit Mode: OFF</button><button class="btn" id="exportBtn">↓ Export Excel</button><button class="btn" id="histBtn">🕘 History</button><button class="btn" id="backupBtn">↓ Backup (JSON)</button><button class="btn" id="guideBtn">🔗 AI Link Guide</button><button class="btn" id="resetBtn">Reset Filters</button></div>
+<div class="actions"><button class="btn primary" id="addBtn">＋ Add Guest</button><button class="btn" id="editBtn">✎ Edit Mode: OFF</button><button class="btn" id="exportBtn">↓ Export Excel</button><button class="btn" id="pdfBtn">↓ Export PDF</button><button class="btn" id="histBtn">🕘 History</button><button class="btn" id="backupBtn">↓ Backup (JSON)</button><button class="btn" id="guideBtn">🔗 AI Link Guide</button><button class="btn" id="resetBtn">Reset Filters</button></div>
 <section class="panel hidden" id="histPanel"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>Change History</b><button class="btn" id="closeHist">✕</button></div><div class="filters" style="margin:0 0 8px"><div><label>Show a single day</label><input type="date" id="histDate" class="field"></div><div style="display:flex;align-items:flex-end"><button class="btn" id="histAll" type="button">All dates (latest 500)</button></div></div><div id="histList"></div></section>
 <section class="panel hidden" id="guidePanel"><div style="display:flex;justify-content:space-between;margin-bottom:8px"><b>AI Link Guide</b><button class="btn" id="closeGuide">✕</button></div><p class="muted">Paste these instructions into any AI once. Then ask e.g. "mark Rahul in 101 as paid" and it replies with a link. Clicking it opens this app, shows the changes, and applies them when you press Apply.</p><textarea id="guideText" class="field" readonly></textarea><div class="actions"><button class="btn primary" id="copyGuide">Copy AI instructions</button><button class="btn" id="copyList">Copy guest list (no phone numbers)</button></div></section>
 <div class="ov hidden" id="ov"><div class="modal" id="modalBody"></div></div>
@@ -164,11 +164,131 @@ $('saveGuest').onclick=async()=>{
   ['newName','newContact','newRent','newDeposit','newNotes'].forEach(id=>$(id).value='');$('addPanel').classList.add('hidden');render();
   if(changed.length)await run(sb.from('guests').upsert(changed.map(g=>({id:g.id,sort_order:g.sort_order,...toRow(g)}))));
   setSync('Synced');note('Guest added. Serial numbers and room status updated.')};
-// Export: Excel-compatible CSV (opens directly in Excel)
-$('exportBtn').onclick=()=>{const h=['Sr','Flat','Accommodation','Tenant','Contact','Rent','Rent Status','Deposit','Deposit Status','Notes'];
-  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const lines=[h.map(q).join(',')].concat(data.map((x,i)=>[i+1,x.flat,x.type,x.name,x.contact?'\t'+x.contact:'',x.rent,x.rent_status,x.deposit,x.deposit_status,x.notes].map(q).join(',')));
-  const blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='yolo-nest-guests-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(a.href)};
+// ---------- Professional exports (Excel + PDF) ----------
+const EXP_COLS=['Sr','Flat','Accommodation','Tenant','Contact','Rent','Rent Status','Deposit','Deposit Status','Notes'];
+const ST={ // status -> [fill, text] (hex without #)
+  'Paid':['DCF5E8','147348'],'Pending':['FDE2E0','B42318'],'Partially Paid':['FFF0D8','9A5A00'],
+  'Not Updated':['EEF2F8','5B6679'],'Not Applicable':['F3F4F6','8A93A3']};
+const stOf=s=>ST[s]||ST['Not Updated'];
+const numOrTxt=v=>{const s=String(v??'').replace(/[,₹\s]/g,'');return s!==''&&!isNaN(s)?Number(s):(v||'')};
+function expStats(data,rooms){
+  const occ=new Set(data.filter(x=>x.name&&x.contact).map(x=>x.flat));
+  const sum=k=>data.reduce((a,x)=>a+(Number(numOrTxt(x[k]))||0),0);
+  const cnt=(k,v)=>data.filter(x=>(x[k]||'Not Updated')===v).length;
+  const pendingAmt=data.filter(x=>['Pending','Partially Paid'].includes(x.rent_status)).reduce((a,x)=>a+(Number(numOrTxt(x.rent))||0),0);
+  return {guests:data.filter(x=>x.name&&x.contact).length,occupied:occ.size,total:rooms.length,empty:rooms.length-occ.size,
+    rent:sum('rent'),deposit:sum('deposit'),paid:cnt('rent_status','Paid'),pending:cnt('rent_status','Pending')+cnt('rent_status','Partially Paid'),pendingAmt,occ};
+}
+const expDate=()=>new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+const expRows=data=>data.map((x,i)=>[i+1,x.flat,x.type,x.name||'',x.contact||'',x.rent,x.rent_status||'Not Updated',x.deposit,x.deposit_status||'Not Updated',x.notes||'']);
+
+async function buildXlsx(ExcelJS,data,rooms){
+  const wb=new ExcelJS.Workbook();wb.creator='Yolo Nest PG Manager';wb.created=new Date();
+  const S=expStats(data,rooms),thin={style:'thin',color:{argb:'FFD7DEEA'}},bord={top:thin,left:thin,bottom:thin,right:thin};
+  const fill=h=>({type:'pattern',pattern:'solid',fgColor:{argb:'FF'+h}});
+  // ---- Sheet 1: Guest Register
+  const ws=wb.addWorksheet('Guest Register',{views:[{state:'frozen',ySplit:6,showGridLines:false}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.4,right:.4,top:.5,bottom:.5,header:.2,footer:.2}}});
+  ws.columns=[{width:6},{width:8},{width:16},{width:24},{width:15},{width:12},{width:16},{width:12},{width:16},{width:38}];
+  ws.mergeCells('A1:J1');const t=ws.getCell('A1');t.value='YOLO NEST · Co-Living PG Manager';t.font={name:'Calibri',size:20,bold:true,color:{argb:'FFFFFFFF'}};t.fill=fill('2457D6');t.alignment={vertical:'middle',horizontal:'left',indent:1};ws.getRow(1).height=36;
+  ws.mergeCells('A2:J2');const s2=ws.getCell('A2');s2.value='Tenant Register  ·  Generated '+expDate();s2.font={size:11,italic:true,color:{argb:'FF44506A'}};s2.fill=fill('EAF0FD');s2.alignment={vertical:'middle',horizontal:'left',indent:1};ws.getRow(2).height=20;
+  ws.getRow(3).height=8;
+  const kp=[['Total guests',S.guests,'2457D6'],['Occupied rooms',S.occupied+'/'+S.total,'147348'],['Empty rooms',S.empty,'9A5A00'],['Rent pending (guests)',S.pending,'B42318'],['Monthly rent (₹)',S.rent,'2457D6']];
+  const spans=[['A','B'],['C','D'],['E','F'],['G','H'],['I','J']];
+  kp.forEach((k,i)=>{const [a,b]=spans[i];ws.mergeCells(`${a}4:${b}4`);ws.mergeCells(`${a}5:${b}5`);
+    const l=ws.getCell(a+'4');l.value=k[0];l.font={size:9,bold:true,color:{argb:'FF687386'}};l.alignment={horizontal:'center',vertical:'middle'};l.fill=fill('F4F6FA');
+    const v=ws.getCell(a+'5');v.value=k[1];v.font={size:16,bold:true,color:{argb:'FF'+k[2]}};v.alignment={horizontal:'center',vertical:'middle'};v.fill=fill('F4F6FA');if(typeof k[1]==='number'&&i===4)v.numFmt='"₹"#,##0';
+    [l,v].forEach(c=>{c.border={top:i||1?{style:'thin',color:{argb:'FFFFFFFF'}}:undefined,left:{style:'medium',color:{argb:'FFFFFFFF'}},right:{style:'medium',color:{argb:'FFFFFFFF'}}}})});
+  ws.getRow(4).height=18;ws.getRow(5).height=28;
+  const hr=ws.getRow(6);hr.values=EXP_COLS.map((c,i)=>i===5||i===7?c+' (₹)':c);hr.height=26;
+  hr.eachCell(c=>{c.font={bold:true,color:{argb:'FFFFFFFF'},size:11};c.fill=fill('172033');c.alignment={vertical:'middle',horizontal:'center',wrapText:true};c.border=bord});
+  expRows(data).forEach((r,i)=>{
+    const row=ws.addRow([r[0],r[1],r[2],r[3],r[4],numOrTxt(r[5]),r[6],numOrTxt(r[7]),r[8],r[9]]);row.height=21;
+    const zebra=i%2?'F8FAFD':'FFFFFF';
+    row.eachCell({includeEmpty:true},(c,n)=>{c.border=bord;c.fill=fill(zebra);c.font={size:11,color:{argb:'FF172033'}};c.alignment={vertical:'middle',horizontal:[1,2,7,9].includes(n)?'center':[6,8].includes(n)?'right':'left',wrapText:n===10,indent:[3,4,5,10].includes(n)?1:0}});
+    ws.getCell(row.number,5).numFmt='@';ws.getCell(row.number,5).value=r[4]?String(r[4]):'';
+    [6,8].forEach(n=>{const c=ws.getCell(row.number,n);if(typeof c.value==='number')c.numFmt='"₹"#,##0'});
+    [7,9].forEach(n=>{const c=ws.getCell(row.number,n),[bg,fg]=stOf(r[n-1]);c.fill=fill(bg);c.font={bold:true,size:10,color:{argb:'FF'+fg}};c.alignment={vertical:'middle',horizontal:'center'}});
+    if(!r[3]){ws.getCell(row.number,4).font={size:11,italic:true,color:{argb:'FF9AA3B2'}};ws.getCell(row.number,4).value='— vacant —'}
+  });
+  const first=7,last=6+data.length,tr=ws.addRow(['','','','TOTAL','','','','','','']);tr.height=24;
+  ws.getCell(tr.number,6).value={formula:`SUM(F${first}:F${last})`,result:S.rent};ws.getCell(tr.number,8).value={formula:`SUM(H${first}:H${last})`,result:S.deposit};
+  tr.eachCell({includeEmpty:true},(c,n)=>{c.fill=fill('EAF0FD');c.font={bold:true,size:12,color:{argb:'FF172033'}};c.border={top:{style:'medium',color:{argb:'FF2457D6'}},bottom:{style:'medium',color:{argb:'FF2457D6'}}};c.alignment={vertical:'middle',horizontal:n===4?'left':'right',indent:n===4?1:0};if(n===6||n===8)c.numFmt='"₹"#,##0'});
+  ws.autoFilter={from:'A6',to:'J6'};
+  ws.headerFooter={oddFooter:'&LYolo Nest PG Manager&CPage &P of &N&R'+expDate()};ws.pageSetup.printTitlesRow='6:6';
+  // legend
+  ws.addRow([]);const lg=ws.addRow(['','Legend:']);lg.getCell(2).font={bold:true,size:10,color:{argb:'FF687386'}};
+  Object.keys(ST).forEach((k,i)=>{const c=lg.getCell(3+i);c.value=k;c.fill=fill(ST[k][0]);c.font={bold:true,size:9,color:{argb:'FF'+ST[k][1]}};c.alignment={horizontal:'center'};c.border=bord});
+  // ---- Sheet 2: Room Overview
+  const wr=wb.addWorksheet('Room Overview',{views:[{showGridLines:false}],pageSetup:{orientation:'landscape',paperSize:9,fitToPage:true,fitToWidth:1,fitToHeight:1}});
+  wr.columns=[{width:14},...Array(6).fill({width:22})];
+  wr.mergeCells('A1:G1');const rt=wr.getCell('A1');rt.value='Room Overview · '+S.occupied+' of '+S.total+' rooms occupied';rt.font={size:16,bold:true,color:{argb:'FFFFFFFF'}};rt.fill=fill('2457D6');rt.alignment={vertical:'middle',indent:1};wr.getRow(1).height=32;
+  wr.addRow([]);
+  for(let f=0;f<Math.ceil(rooms.length/6);f++){
+    const lab=wr.addRow([['1st','2nd','3rd','4th','5th'][f]+' Floor']);lab.height=40;
+    const lc=lab.getCell(1);lc.fill=fill('172033');lc.font={bold:true,color:{argb:'FFFFFFFF'},size:12};lc.alignment={vertical:'middle',horizontal:'center'};lc.border=bord;
+    rooms.slice(f*6,f*6+6).forEach((r,i)=>{
+      const g=data.filter(x=>x.flat===r&&x.name&&x.contact),c=lab.getCell(2+i);
+      c.value=g.length?`Room ${r}\n${g.map(x=>x.name).join(', ')}`:`Room ${r}\nEmpty`;
+      c.fill=fill(g.length?'DCF5E8':'FDF3E3');c.font={size:10,bold:true,color:{argb:g.length?'FF147348':'FF9A5A00'}};c.alignment={wrapText:true,vertical:'middle',horizontal:'center'};c.border=bord});
+    wr.addRow([]).height=6;
+  }
+  return wb;
+}
+
+function buildPdf(jsPDF,data,rooms){
+  const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'}),W=doc.internal.pageSize.getWidth(),H=doc.internal.pageSize.getHeight();
+  const S=expStats(data,rooms),hex=h=>[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+  const rs=n=>'Rs. '+Number(n||0).toLocaleString('en-IN');
+  const drawHeader=()=>{doc.setFillColor(36,87,214);doc.rect(0,0,W,52,'F');doc.setTextColor(255);doc.setFont('helvetica','bold');doc.setFontSize(20);doc.text('YOLO NEST',32,28);
+    doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text('Co-Living  ·  PG Manager  ·  Tenant Register',32,43);doc.text('Generated '+expDate(),W-32,34,{align:'right'})};
+  drawHeader();
+  // KPI cards
+  const kp=[['Total guests',String(S.guests),'2457D6'],['Occupied rooms',S.occupied+' / '+S.total,'147348'],['Empty rooms',String(S.empty),'9A5A00'],['Rent pending',S.pending+' guests','B42318'],['Monthly rent',rs(S.rent),'2457D6'],['Total deposit',rs(S.deposit),'172033']];
+  const gap=8,cw=(W-64-gap*5)/6;
+  kp.forEach((k,i)=>{const x=32+i*(cw+gap);doc.setFillColor(244,246,250);doc.roundedRect(x,66,cw,46,5,5,'F');doc.setFillColor(...hex(k[2]));doc.rect(x,66,3,46,'F');
+    doc.setTextColor(104,115,134);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(k[0].toUpperCase(),x+11,82);
+    doc.setTextColor(...hex(k[2]));doc.setFontSize(14);doc.text(k[1],x+11,103)});
+  const body=expRows(data).map(r=>[r[0],r[1],r[2],r[3]||'— vacant —',r[4],r[5]===''?'-':rs(numOrTxt(r[5])),r[6],r[7]===''?'-':rs(numOrTxt(r[7])),r[8],r[9]]);
+  doc.autoTable({startY:126,head:[EXP_COLS],body,theme:'grid',margin:{left:32,right:32,top:62,bottom:36},
+    styles:{font:'helvetica',fontSize:8.5,cellPadding:{top:5,bottom:5,left:5,right:5},lineColor:[215,222,234],lineWidth:.5,textColor:[23,32,51],valign:'middle'},
+    headStyles:{fillColor:[23,32,51],textColor:255,fontStyle:'bold',halign:'center'},
+    alternateRowStyles:{fillColor:[248,250,253]},
+    columnStyles:{0:{halign:'center',cellWidth:28},1:{halign:'center',cellWidth:38},2:{cellWidth:78},3:{cellWidth:112},4:{cellWidth:72},5:{halign:'right',cellWidth:60},6:{halign:'center',cellWidth:72},7:{halign:'right',cellWidth:60},8:{halign:'center',cellWidth:72},9:{cellWidth:'auto'}},
+    didParseCell:h=>{if(h.section!=='body')return;const c=h.column.index;
+      if(c===6||c===8){const [bg,fg]=stOf(h.cell.raw);h.cell.styles.fillColor=hex(bg);h.cell.styles.textColor=hex(fg);h.cell.styles.fontStyle='bold'}
+      if(c===3&&h.cell.raw==='— vacant —'){h.cell.styles.textColor=[154,163,178];h.cell.styles.fontStyle='italic'}},
+    didDrawPage:h=>{if(h.pageNumber>1)drawHeader()}});
+  // Room overview page
+  doc.addPage();drawHeader();doc.setTextColor(23,32,51);doc.setFont('helvetica','bold');doc.setFontSize(14);doc.text(`Room Overview  ·  ${S.occupied} of ${S.total} rooms occupied`,32,86);
+  const cols=6,cwid=(W-64-gap*(cols-1))/cols,ch=62;let y=104;
+  for(let f=0;f<Math.ceil(rooms.length/cols);f++){
+    doc.setFillColor(23,32,51);doc.roundedRect(32,y,W-64,16,3,3,'F');doc.setTextColor(255);doc.setFontSize(9);doc.text(['1st','2nd','3rd','4th','5th'][f]+' Floor',40,y+11.5);y+=22;
+    rooms.slice(f*cols,f*cols+cols).forEach((r,i)=>{const g=data.filter(x=>x.flat===r&&x.name&&x.contact),x=32+i*(cwid+gap);
+      doc.setFillColor(...hex(g.length?'DCF5E8':'FDF3E3'));doc.setDrawColor(...hex(g.length?'9FDDBD':'F0D3A0'));doc.roundedRect(x,y,cwid,ch-18,4,4,'FD');
+      doc.setTextColor(...hex(g.length?'147348':'9A5A00'));doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Room '+r,x+8,y+14);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);const t=g.length?g.map(z=>z.name).join(', '):'Empty';doc.text(doc.splitTextToSize(t,cwid-14).slice(0,2),x+8,y+27)});
+    y+=ch-18+10}
+  // footer on all pages
+  const n=doc.internal.getNumberOfPages();for(let p=1;p<=n;p++){doc.setPage(p);doc.setFontSize(8);doc.setTextColor(120,130,150);doc.setFont('helvetica','normal');doc.text('Yolo Nest PG Manager',32,H-16);doc.text(`Page ${p} of ${n}`,W-32,H-16,{align:'right'})}
+  return doc;
+}
+
+function loadLib(files,test){return test()?Promise.resolve():files.reduce((p,f)=>p.catch(()=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=f;s.onload=()=>test()?res():rej();s.onerror=rej;document.head.appendChild(s)})),Promise.reject())}
+const CDN='https://cdnjs.cloudflare.com/ajax/libs/';
+const needExcel=()=>loadLib(['vendor/exceljs.min.js',CDN+'exceljs/4.4.0/exceljs.min.js'],()=>window.ExcelJS);
+const needPdf=()=>loadLib(['vendor/jspdf.umd.min.js',CDN+'jspdf/2.5.1/jspdf.umd.min.js'],()=>window.jspdf&&window.jspdf.jsPDF).then(()=>loadLib(['vendor/jspdf.plugin.autotable.min.js',CDN+'jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'],()=>window.jspdf.jsPDF.API.autoTable));
+const stamp=()=>new Date().toISOString().slice(0,10);
+function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}
+function csvFallback(){const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const lines=[EXP_COLS.map(q).join(',')].concat(data.map((x,i)=>[i+1,x.flat,x.type,x.name,x.contact?'\t'+x.contact:'',x.rent,x.rent_status,x.deposit,x.deposit_status,x.notes].map(q).join(',')));
+  saveBlob(new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'}),'yolo-nest-guests-'+stamp()+'.csv')}
+$('exportBtn').onclick=async()=>{note('Preparing Excel file…');
+  try{await needExcel();const wb=await buildXlsx(window.ExcelJS,data,rooms);const buf=await wb.xlsx.writeBuffer();
+    saveBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),'yolo-nest-guests-'+stamp()+'.xlsx');note('Excel file downloaded.')}
+  catch(e){csvFallback();note('Could not build the formatted Excel file ('+(e&&e.message||'library not loaded')+'). Plain CSV downloaded instead.',true)}};
+$('pdfBtn').onclick=async()=>{note('Preparing PDF…');
+  try{await needPdf();const doc=buildPdf(window.jspdf.jsPDF,data,rooms);doc.save('yolo-nest-guests-'+stamp()+'.pdf');note('PDF downloaded.')}
+  catch(e){note('Could not create PDF: '+(e&&e.message||'library not loaded. Check your connection.'),true)}};
 
 // ---------- Change links (?changes=...) ----------
 const norm=s=>String(s??'').toLowerCase().replace(/\s+/g,' ').trim();
